@@ -1,0 +1,14 @@
+package dev.marshall.hounded.game;
+
+/** Why a requested change to the session was refused. Callers map these to message keys. */
+public enum RejectionReason {
+    NOT_IN_LOBBY,
+    NOT_ACTIVE,
+    NOT_ENDED,
+    NO_RUNNERS,
+    NO_HUNTERS,
+    NEGATIVE_HEADSTART,
+    NOT_A_RUNNER,
+    ALREADY_ELIMINATED,
+    ROLES_LOCKED
+}
