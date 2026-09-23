@@ -17,6 +17,7 @@ help: |-
   <white>/hounded hunter add|remove|list|clear</white> <gray>- manage hunters</gray>
   <white>/hounded start [seconds]</white> <gray>- start a round with an optional headstart</gray>
   <white>/hounded stop</white> <gray>- stop the current round</gray>
+  <white>/hounded compass</white> <gray>- get a new tracking compass (hunters)</gray>
   <white>/hounded reload</white> <gray>- reload config.yml and messages.yml</gray>
 
 reload:
@@ -62,7 +63,9 @@ win:
 
 compass:
   name: "<gold>Tracking Compass</gold>"
-  how-to-use: "<gray>Your compass points at</gray> <white><runner></white><gray>. Left-click to switch runner. Right-click to update it now.</gray>"
+  how-to-use-auto: "<gray>Your compass tracks</gray> <white><runner></white> <gray>and updates by itself. Left-click to switch runner.</gray>"
+  how-to-use-manual: "<gray>Your compass tracks</gray> <white><runner></white><gray>. Right-click to update it, left-click to switch runner.</gray>"
+  not-in-round: "<red>You can only get a tracking compass as a hunter during a round.</red>"
   no-data: "<yellow>No trail to follow yet: <white><runner></white> hasn't been seen in this dimension. Pointing at spawn.</yellow>"
   disabled-in-nether: "<gray>Compass tracking is disabled in the Nether.</gray>"
 

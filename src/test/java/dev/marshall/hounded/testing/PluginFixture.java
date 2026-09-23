@@ -10,15 +10,23 @@ import dev.marshall.hounded.config.PlaceholderNames;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.CompassMeta;
 import org.mockbukkit.mockbukkit.MockBukkit;
 import org.mockbukkit.mockbukkit.ServerMock;
 import org.mockbukkit.mockbukkit.entity.PlayerMock;
+import org.mockbukkit.mockbukkit.world.WorldMock;
 
 /**
  * A mock server with Hounded enabled. Expected messages are rendered from the plugin's own
@@ -83,6 +91,23 @@ public final class PluginFixture implements AutoCloseable {
         if (!config.reload()) {
             throw new IllegalStateException("Reloading the edited config.yml failed");
         }
+    }
+
+    /** Mock servers start without worlds; the first one added is where new players spawn. */
+    public World addWorld(String name, World.Environment environment) {
+        WorldMock world = server.addSimpleWorld(name);
+        world.setEnvironment(environment);
+        return world;
+    }
+
+    /** Where the first compass in the player's inventory points; empty if it has no target. */
+    public static Optional<Location> compassTarget(PlayerMock player) {
+        ItemStack compass = Arrays.stream(player.getInventory().getContents())
+                .filter(item -> item != null && item.getType() == Material.COMPASS)
+                .findFirst()
+                .orElseThrow(() -> new AssertionError(player.getName() + " has no compass"));
+        CompassMeta meta = (CompassMeta) compass.getItemMeta();
+        return meta.hasLodestone() ? Optional.of(meta.getLodestone()) : Optional.empty();
     }
 
     public boolean hasScheduledTasks() {

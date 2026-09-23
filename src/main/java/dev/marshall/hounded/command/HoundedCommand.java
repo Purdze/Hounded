@@ -7,6 +7,7 @@ import dev.marshall.hounded.config.ConfigService;
 import dev.marshall.hounded.game.GameSession;
 import dev.marshall.hounded.game.Role;
 import dev.marshall.hounded.round.RoundService;
+import dev.marshall.hounded.tracking.TrackingService;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
 import org.bukkit.Server;
@@ -18,18 +19,26 @@ public final class HoundedCommand {
     private final GeneralCommands general;
     private final RoleCommands roles;
     private final RoundCommands round;
+    private final CompassCommands compass;
 
-    public HoundedCommand(GameSession session, RoundService roundService, ConfigService configService, Server server) {
+    public HoundedCommand(
+            GameSession session,
+            RoundService roundService,
+            TrackingService trackingService,
+            ConfigService configService,
+            Server server) {
         CommandReplies replies = new CommandReplies(configService);
         this.general = new GeneralCommands(configService, replies);
         this.roles = new RoleCommands(session, replies, server);
         this.round = new RoundCommands(roundService, configService, replies);
+        this.compass = new CompassCommands(trackingService, replies);
     }
 
     public LiteralCommandNode<CommandSourceStack> build() {
         return Commands.literal(NAME)
                 .executes(context -> general.showHelp(context.getSource()))
                 .then(general.help())
+                .then(compass.compass())
                 .then(adminOnly(roles.build(Role.RUNNER)))
                 .then(adminOnly(roles.build(Role.HUNTER)))
                 .then(adminOnly(round.start()))

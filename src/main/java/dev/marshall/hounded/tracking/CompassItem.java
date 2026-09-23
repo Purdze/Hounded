@@ -6,6 +6,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.CompassMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 
@@ -42,27 +43,36 @@ public final class CompassItem {
     }
 
     /**
-     * Points the compass at {@code target}.
+     * Points the compass at {@code target} without needing a real lodestone block there.
      *
-     * <p>TODO(verify-on-26.2): implement with {@code CompassMeta#setLodestone} plus
-     * {@code setLodestoneTracked(false)} (no real lodestone block). Before building on it, verify
-     * on a Paper 26.2 server:
-     *
-     * <ol>
-     *   <li>Does an untracked lodestone target point correctly in the Nether and the End, where a
-     *       normal compass spins?
-     *   <li>What does the needle do when the lodestone location's world differs from the holder's
-     *       world? (TargetResolver should prevent that, but we need to know the failure mode.)
-     *   <li>Does rewriting the meta every update interval replay the hotbar "re-equip" animation or
-     *       make the item flicker? If so, only write when the target block actually changes.
-     *   <li>Is the needle accurate underground/in caves when the target is far above or below?
-     *   <li>Does the persistent-data marker survive death drops, respawn re-issue and /reload?
-     *   <li>Is there a cleaner item-component API on 26.2 (lodestone tracker component) that avoids
-     *       rebuilding the whole meta?
-     * </ol>
+     * @return false if it already pointed at that block, so callers can skip re-sending the item
      */
-    public void pointAt(ItemStack compass, Location target) {
-        Objects.requireNonNull(compass, "compass");
-        Objects.requireNonNull(target, "target");
+    public boolean pointAt(ItemStack compass, Location target) {
+        CompassMeta meta = (CompassMeta) compass.getItemMeta();
+        if (meta.hasLodestone() && isSameBlock(meta.getLodestone(), target)) {
+            return false;
+        }
+        meta.setLodestone(target.toBlockLocation());
+        meta.setLodestoneTracked(false);
+        compass.setItemMeta(meta);
+        return true;
+    }
+
+    /** @return false if the compass had no target */
+    public boolean clearTarget(ItemStack compass) {
+        CompassMeta meta = (CompassMeta) compass.getItemMeta();
+        if (!meta.hasLodestone()) {
+            return false;
+        }
+        meta.clearLodestone();
+        compass.setItemMeta(meta);
+        return true;
+    }
+
+    private static boolean isSameBlock(Location first, Location second) {
+        return Objects.equals(first.getWorld(), second.getWorld())
+                && first.getBlockX() == second.getBlockX()
+                && first.getBlockY() == second.getBlockY()
+                && first.getBlockZ() == second.getBlockZ();
     }
 }

@@ -6,6 +6,7 @@ public final class PlaceholderNames {
     public static final String PLAYERS = "players";
     public static final String ROLE = "role";
     public static final String ROLES = "roles";
+    public static final String RUNNER = "runner";
     public static final String SECONDS = "seconds";
     public static final String TIME = "time";
 

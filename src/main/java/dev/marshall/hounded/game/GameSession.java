@@ -47,6 +47,10 @@ public final class GameSession {
         return roster.roleOf(player);
     }
 
+    public boolean hasRole(UUID player, Role role) {
+        return roster.roleOf(player).filter(role::equals).isPresent();
+    }
+
     public List<UUID> playersWith(Role role) {
         return roster.playersWith(role);
     }
@@ -58,7 +62,7 @@ public final class GameSession {
     /** Removes {@code role} from the player; rejected if they hold a different role or none. */
     public TransitionResult unassignRole(UUID player, Role role) {
         return changeRoles(() -> {
-            if (roster.roleOf(player).filter(role::equals).isEmpty()) {
+            if (!hasRole(player, role)) {
                 return Optional.of(RejectionReason.NOT_IN_ROLE);
             }
             roster.unassign(player);
@@ -175,8 +179,7 @@ public final class GameSession {
 
     /** Hunters wait during the headstart; the plugin decides what "waiting" means. */
     public boolean isHeldInHeadstart(UUID player) {
-        return state == GameState.HEADSTART
-                && roster.roleOf(player).filter(Role.HUNTER::equals).isPresent();
+        return state == GameState.HEADSTART && hasRole(player, Role.HUNTER);
     }
 
     public boolean isEliminated(UUID player) {
@@ -213,7 +216,7 @@ public final class GameSession {
         if (!state.isActive()) {
             return Optional.of(RejectionReason.NOT_ACTIVE);
         }
-        if (roster.roleOf(player).filter(Role.RUNNER::equals).isEmpty()) {
+        if (!hasRole(player, Role.RUNNER)) {
             return Optional.of(RejectionReason.NOT_A_RUNNER);
         }
         if (eliminatedRunners.contains(player)) {
