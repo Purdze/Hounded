@@ -2,7 +2,7 @@
 
 A manhunt game mode for Paper: one or more speedrunners try to beat the game while hunters track them with a compass that works in every dimension.
 
-> **Status: early scaffold (0.1.0-SNAPSHOT).** The game rules, compass target logic and config loading are built and tested. Commands, listeners and the live compass are **not implemented yet**, so the plugin can't run a round in-game.
+> **Status: early development (0.1.0-SNAPSHOT).** You can assign roles and play a full round: headstart, then a win when the dragon dies or every runner dies. The tracking compass is **not implemented yet**.
 
 ## Requirements
 - Paper **26.2**
@@ -13,16 +13,25 @@ A manhunt game mode for Paper: one or more speedrunners try to beat the game whi
 2. Start the server. Hounded creates `plugins/Hounded/config.yml` and `messages.yml`.
 3. Optional: install PlaceholderAPI for placeholders (planned).
 
-## Commands (planned for v1)
+## Commands
+All commands except `help` need `hounded.admin`. `add` and `remove` take an online player. `/hounded compass` arrives with the compass.
+
 | Command | Description |
 |---|---|
 | `/hounded runner add\|remove\|list\|clear [player]` | Manage runners |
 | `/hounded hunter add\|remove\|list\|clear [player]` | Manage hunters |
 | `/hounded start [seconds]` | Start a round with an optional headstart (0 = none) |
 | `/hounded stop` | Stop the current round |
-| `/hounded compass` | Get a tracking compass |
 | `/hounded reload` | Reload `config.yml` and `messages.yml` |
-| `/hounded help` | Show help |
+| `/hounded help` | Show help (also plain `/hounded`) |
+
+## How a round works
+1. Add at least one runner and one hunter.
+2. `/hounded start 30` gives runners 30 seconds, then the hunters are released.
+3. Runners win when the ender dragon dies. Hunters win when every runner has died once.
+4. The result is announced with the hunt time, and the game returns to the lobby. Roles are kept for the next round.
+
+Roles can't be changed during a round. Use `/hounded stop` first.
 
 ## Permissions
 | Node | Default | Grants |

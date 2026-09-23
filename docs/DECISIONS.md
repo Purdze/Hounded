@@ -22,7 +22,7 @@ Compiler runs with `-Xlint:all -Werror` so warnings don't pile up.
 ## Descriptor and commands
 
 - **`plugin.yml`, not `paper-plugin.yml`.** Required by CLAUDE.md so a Spigot listing stays possible later.
-- **Commands via Brigadier** (`getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, …)` in `onEnable`). The Paper docs show this from the main plugin class. Their bootstrap-based variant needs `paper-plugin.yml`, which we don't use. Therefore `plugin.yml` has no `commands:` block. *Unverified until commands are implemented:* confirm registration from `onEnable` works on 26.2 with a `plugin.yml` plugin. If it doesn't, fall back to `CommandExecutor` + `TabCompleter` and add a `commands:` block.
+- **Commands via Brigadier** (`getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, …)` in `onEnable`). The Paper docs show this from the main plugin class. Their bootstrap-based variant needs `paper-plugin.yml`, which we don't use. Therefore `plugin.yml` has no `commands:` block. **Verified 2026-09-23** on Paper 26.2 build 129: registering from `onEnable` works with a `plugin.yml` plugin.
 - **No Folia.** `folia-supported` is not declared.
 
 ## Architecture
@@ -31,7 +31,12 @@ Compiler runs with `-Xlint:all -Werror` so warnings don't pile up.
 - **`GameSession` returns `TransitionResult`** (`Changed` / `Unchanged` / `Rejected(reason)`) instead of throwing. Commands map each `RejectionReason` to a message key.
 - **Time is injected** (`java.time.Clock`) so headstart and the hunt timer are testable. The plugin calls `tick()` periodically.
 - **Roles are locked during a round.** Changing roles mid-round would silently change who can win. Revisit if users want late-joining hunters.
-- **Runner death = eliminated for the round.** Hunters win when every runner is eliminated. A runner quitting does **not** eliminate them yet. That still needs a decision (e.g. a grace period).
+- **`round/` package (not in the original CLAUDE.md layout).** `RoundService` is the one Bukkit-side place that turns `GameSession` results into effects: broadcasts, the headstart timer, and the reset to the lobby after a round ends. Commands and listeners call it, so neither contains game flow.
+- **Removing a role is role-specific.** `/hounded runner remove X` fails with a message if X is a hunter, instead of silently unassigning them.
+- **Role names are message keys** (`role.name.runner`, `role.name.runners`, …) so translations don't depend on English pluralisation.
+- **Unknown player / missing permission** are handled by Brigadier (vanilla error, and admin branches hidden), so there are no message keys for them.
+- **Existing `messages.yml` files are never overwritten.** A key only falls back to the bundled text when it's missing entirely, so a changed default doesn't reach an existing file. Revisit before the first release, e.g. with a config version and a migration notice.
+- **Runner death = eliminated for the round.** Hunters win when every runner is eliminated. Eliminated runners respawn normally and stay in survival; a spectator switch is still to be decided. A runner quitting does **not** eliminate them yet. That still needs a decision (e.g. a grace period).
 - **Dimensions are an enum (OVERWORLD / NETHER / END).** Assumes one world of each per server. Custom/extra worlds are out of scope for v1.
 - **Portal memory = where the runner last left each dimension.** `TargetResolver` points a hunter in dimension D at the runner if they share D. Otherwise it points at the runner's last exit portal in D. If neither is known, it returns `NoData`, and the caller points at D's spawn and tells the hunter why.
 - **Config parsing is pure** (`SettingsParser` takes a flat map). Invalid values fall back to defaults with a console warning naming the key, so a typo never prevents loading.
