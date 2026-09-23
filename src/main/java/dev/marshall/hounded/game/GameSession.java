@@ -39,8 +39,6 @@ public final class GameSession {
         return Optional.ofNullable(outcome);
     }
 
-    // ---- roles ----------------------------------------------------------------------------
-
     public Optional<Role> roleOf(UUID player) {
         return roster.roleOf(player);
     }
@@ -49,32 +47,17 @@ public final class GameSession {
         return roster.playersWith(role);
     }
 
-    /** Roles are locked during a round because changing them would silently change who can win. */
     public TransitionResult assignRole(UUID player, Role role) {
-        if (state.isActive()) {
-            return new TransitionResult.Rejected(RejectionReason.ROLES_LOCKED);
-        }
-        roster.assign(player, role);
-        return new TransitionResult.Unchanged(state);
+        return changeRoles(() -> roster.assign(player, role));
     }
 
     public TransitionResult unassignRole(UUID player) {
-        if (state.isActive()) {
-            return new TransitionResult.Rejected(RejectionReason.ROLES_LOCKED);
-        }
-        roster.unassign(player);
-        return new TransitionResult.Unchanged(state);
+        return changeRoles(() -> roster.unassign(player));
     }
 
     public TransitionResult clearRole(Role role) {
-        if (state.isActive()) {
-            return new TransitionResult.Rejected(RejectionReason.ROLES_LOCKED);
-        }
-        roster.clear(role);
-        return new TransitionResult.Unchanged(state);
+        return changeRoles(() -> roster.clear(role));
     }
-
-    // ---- lifecycle ------------------------------------------------------------------------
 
     /** Starts a round. A headstart of 0 skips {@link GameState#HEADSTART}. */
     public TransitionResult start(int headstartSeconds) {
@@ -151,8 +134,6 @@ public final class GameSession {
         return moveTo(GameState.LOBBY);
     }
 
-    // ---- queries --------------------------------------------------------------------------
-
     /** Runners that are still in the round, in assignment order. */
     public List<UUID> remainingRunners() {
         return roster.playersWith(Role.RUNNER).stream()
@@ -182,7 +163,14 @@ public final class GameSession {
         return Duration.between(runningSince, until);
     }
 
-    // ---- internals ------------------------------------------------------------------------
+    /** Roles are locked during a round because changing them would silently change who can win. */
+    private TransitionResult changeRoles(Runnable change) {
+        if (state.isActive()) {
+            return new TransitionResult.Rejected(RejectionReason.ROLES_LOCKED);
+        }
+        change.run();
+        return new TransitionResult.Unchanged(state);
+    }
 
     private TransitionResult enterRunning(GameState from) {
         runningSince = clock.instant();

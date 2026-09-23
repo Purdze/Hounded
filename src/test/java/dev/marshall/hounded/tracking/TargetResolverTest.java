@@ -47,8 +47,6 @@ class TargetResolverTest {
 
     @Test
     void portalKnownOnlyInAnotherDimensionIsNoData() {
-        // Hunter in the End, runner in the Nether, only an overworld portal is known: that portal
-        // is useless to someone standing in the End.
         var snapshot = new TrackingSnapshot(
                 Dimension.END,
                 runnerAt(Dimension.NETHER, RUNNER_IN_NETHER),

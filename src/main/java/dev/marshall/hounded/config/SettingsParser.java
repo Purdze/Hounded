@@ -7,6 +7,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 
 /**
  * Turns raw config values into {@link Settings}. Pure Java so validation is unit-testable. Bad or
@@ -29,17 +30,17 @@ public final class SettingsParser {
         Reader reader = new Reader(values);
         Settings defaults = Settings.DEFAULTS;
         Settings settings = new Settings(
-                reader.intAtLeast(ConfigKeys.HEADSTART_DEFAULT_SECONDS, 0, defaults.defaultHeadstartSeconds()),
-                reader.enumValue(ConfigKeys.COMPASS_UPDATE_MODE, CompassUpdateMode.class, defaults.compassUpdateMode()),
-                reader.intAtLeast(ConfigKeys.COMPASS_UPDATE_INTERVAL_TICKS, 1, defaults.compassUpdateIntervalTicks()),
+                reader.intAtLeast(ConfigKey.HEADSTART_DEFAULT_SECONDS, 0, defaults.defaultHeadstartSeconds()),
+                reader.enumValue(ConfigKey.COMPASS_UPDATE_MODE, defaults.compassUpdateMode()),
+                reader.intAtLeast(ConfigKey.COMPASS_UPDATE_INTERVAL_TICKS, 1, defaults.compassUpdateIntervalTicks()),
                 reader.bool(
-                        ConfigKeys.COMPASS_DISABLE_IN_NETHER_FOR_HUNTERS, defaults.disableCompassInNetherForHunters()),
-                reader.bool(ConfigKeys.RULES_FREEZE_WHEN_LOOKED_AT, defaults.freezeWhenLookedAt()),
-                reader.bool(ConfigKeys.RULES_RUNNER_CAN_ATTACK_HUNTERS, defaults.runnerCanAttackHunters()),
-                reader.bool(ConfigKeys.RULES_FRIENDLY_FIRE, defaults.friendlyFire()),
-                reader.enumValue(ConfigKeys.DISPLAY_MODE, DisplayMode.class, defaults.displayMode()),
-                reader.bool(ConfigKeys.DISPLAY_SHOW_DISTANCE, defaults.showDistance()),
-                reader.bool(ConfigKeys.QUICK_START_GUIDE, defaults.showQuickStartGuide()));
+                        ConfigKey.COMPASS_DISABLE_IN_NETHER_FOR_HUNTERS, defaults.disableCompassInNetherForHunters()),
+                reader.bool(ConfigKey.RULES_FREEZE_WHEN_LOOKED_AT, defaults.freezeWhenLookedAt()),
+                reader.bool(ConfigKey.RULES_RUNNER_CAN_ATTACK_HUNTERS, defaults.runnerCanAttackHunters()),
+                reader.bool(ConfigKey.RULES_FRIENDLY_FIRE, defaults.friendlyFire()),
+                reader.enumValue(ConfigKey.DISPLAY_MODE, defaults.displayMode()),
+                reader.bool(ConfigKey.DISPLAY_SHOW_DISTANCE, defaults.showDistance()),
+                reader.bool(ConfigKey.QUICK_START_GUIDE, defaults.showQuickStartGuide()));
         return new Result(settings, reader.warnings);
     }
 
@@ -51,58 +52,49 @@ public final class SettingsParser {
             this.values = values;
         }
 
-        int intAtLeast(String key, int minimum, int fallback) {
-            Optional<Object> raw = raw(key, fallback);
-            if (raw.isEmpty()) {
-                return fallback;
-            }
-            if (raw.get() instanceof Integer number && number >= minimum) {
-                return number;
-            }
-            return invalid(key, raw.get(), "a whole number >= " + minimum, fallback);
+        int intAtLeast(ConfigKey key, int minimum, int fallback) {
+            return read(
+                    key,
+                    fallback,
+                    "a whole number >= " + minimum,
+                    raw -> raw instanceof Integer number && number >= minimum ? Optional.of(number) : Optional.empty());
         }
 
-        boolean bool(String key, boolean fallback) {
-            Optional<Object> raw = raw(key, fallback);
-            if (raw.isEmpty()) {
-                return fallback;
-            }
-            if (raw.get() instanceof Boolean flag) {
-                return flag;
-            }
-            return invalid(key, raw.get(), "true or false", fallback);
+        boolean bool(ConfigKey key, boolean fallback) {
+            return read(
+                    key,
+                    fallback,
+                    "true or false",
+                    raw -> raw instanceof Boolean flag ? Optional.of(flag) : Optional.empty());
         }
 
-        <E extends Enum<E>> E enumValue(String key, Class<E> type, E fallback) {
-            Optional<Object> raw = raw(key, fallback);
-            if (raw.isEmpty()) {
-                return fallback;
-            }
-            String name = raw.get().toString().trim().toUpperCase(Locale.ROOT);
-            for (E constant : type.getEnumConstants()) {
-                if (constant.name().equals(name)) {
-                    return constant;
-                }
-            }
+        <E extends Enum<E>> E enumValue(ConfigKey key, E fallback) {
+            E[] constants = fallback.getDeclaringClass().getEnumConstants();
             String allowed = String.join(
                     ", ",
-                    Arrays.stream(type.getEnumConstants())
+                    Arrays.stream(constants)
                             .map(constant -> constant.name().toLowerCase(Locale.ROOT))
                             .toList());
-            return invalid(key, raw.get(), "one of: " + allowed, fallback);
+            return read(key, fallback, "one of: " + allowed, raw -> {
+                String name = raw.toString().trim().toUpperCase(Locale.ROOT);
+                return Arrays.stream(constants)
+                        .filter(constant -> constant.name().equals(name))
+                        .findFirst();
+            });
         }
 
-        private Optional<Object> raw(String key, Object fallback) {
-            Object value = values.get(key);
-            if (value == null) {
-                warnings.add("'%s' is missing, using default %s".formatted(key, fallback));
+        private <T> T read(ConfigKey key, T fallback, String expected, Function<Object, Optional<T>> convert) {
+            Object raw = values.get(key.path());
+            if (raw == null) {
+                warnings.add("'%s' is missing, using default %s".formatted(key.path(), fallback));
+                return fallback;
             }
-            return Optional.ofNullable(value);
-        }
-
-        private <T> T invalid(String key, Object value, String expected, T fallback) {
-            warnings.add("'%s' is '%s' but must be %s, using default %s".formatted(key, value, expected, fallback));
-            return fallback;
+            Optional<T> converted = convert.apply(raw);
+            if (converted.isEmpty()) {
+                warnings.add(
+                        "'%s' is '%s' but must be %s, using default %s".formatted(key.path(), raw, expected, fallback));
+            }
+            return converted.orElse(fallback);
         }
     }
 }

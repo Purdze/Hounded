@@ -36,7 +36,8 @@ Compiler runs with `-Xlint:all -Werror` so warnings don't pile up.
 - **Portal memory = where the runner last left each dimension.** `TargetResolver` points a hunter in dimension D at the runner if they share D. Otherwise it points at the runner's last exit portal in D. If neither is known, it returns `NoData`, and the caller points at D's spawn and tells the hunter why.
 - **Config parsing is pure** (`SettingsParser` takes a flat map). Invalid values fall back to defaults with a console warning naming the key, so a typo never prevents loading.
 - **Reload is all-or-nothing.** `ConfigService.reload()` swaps settings and messages together only if both files load. Otherwise it keeps the previous ones and logs why.
-- **Messages:** keys in `MessageKeys`. Missing keys in the user's `messages.yml` fall back to the bundled English. A key missing everywhere renders as the key name, logged once. A test checks every key exists and is strict-valid MiniMessage.
+- **Keys are enums** (`ConfigKey`, `MessageKey`), each listing every path once. Tests iterate `values()`, so there is no second list to keep in sync.
+- **Messages:** Missing keys in the user's `messages.yml` fall back to the bundled English. A key missing everywhere renders as the key name, logged once. A test checks every key exists and is strict-valid MiniMessage.
 - **paper-api is also a `testImplementation`** so tests can load the bundled YAML and render MiniMessage. It's the same allowed dependency, not a new one.
 
 ## Compass (open questions)

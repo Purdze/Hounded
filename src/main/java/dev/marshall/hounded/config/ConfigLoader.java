@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 import java.util.Objects;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -37,9 +37,9 @@ public final class ConfigLoader {
         YamlConfiguration messagesFile = loadYaml(MESSAGES_FILE);
         // Bundled defaults fill in keys added in newer versions that the user's file does not have yet.
         messagesFile.setDefaults(loadBundledYaml(MESSAGES_FILE));
-        Map<String, String> templates = new HashMap<>();
-        for (String key : MessageKeys.ALL) {
-            String template = messagesFile.getString(key);
+        Map<MessageKey, String> templates = new EnumMap<>(MessageKey.class);
+        for (MessageKey key : MessageKey.values()) {
+            String template = messagesFile.getString(key.path());
             if (template != null) {
                 templates.put(key, template);
             }

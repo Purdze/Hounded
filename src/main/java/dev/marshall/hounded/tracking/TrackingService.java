@@ -28,11 +28,7 @@ public final class TrackingService {
         this.compassItem = Objects.requireNonNull(compassItem, "compassItem");
     }
 
-    /** TODO(scaffold): schedule the update task. */
     public void start() {}
 
-    /** Cancels the update task and forgets per-player state. Safe to call when not started. */
-    public void stop() {
-        // TODO(scaffold): cancel the task and clear per-player state once they exist.
-    }
+    public void stop() {}
 }

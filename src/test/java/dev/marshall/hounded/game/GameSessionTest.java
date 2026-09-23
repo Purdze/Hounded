@@ -27,6 +27,10 @@ class GameSessionTest {
         return new TransitionResult.Changed(from, to);
     }
 
+    private static TransitionResult unchanged(GameState state) {
+        return new TransitionResult.Unchanged(state);
+    }
+
     private static TransitionResult rejected(RejectionReason reason) {
         return new TransitionResult.Rejected(reason);
     }
@@ -86,7 +90,7 @@ class GameSessionTest {
             assignOneRunnerAndHunter();
             session.start(10);
             clock.advance(Duration.ofSeconds(9));
-            assertEquals(new TransitionResult.Unchanged(GameState.HEADSTART), session.tick());
+            assertEquals(unchanged(GameState.HEADSTART), session.tick());
             assertEquals(Duration.ofSeconds(1), session.headstartRemaining());
         }
 
@@ -112,7 +116,7 @@ class GameSessionTest {
 
         @Test
         void tickOutsideHeadstartChangesNothing() {
-            assertEquals(new TransitionResult.Unchanged(GameState.LOBBY), session.tick());
+            assertEquals(unchanged(GameState.LOBBY), session.tick());
         }
     }
 
@@ -148,7 +152,7 @@ class GameSessionTest {
             session.assignRole(secondRunner, Role.RUNNER);
             session.start(0);
 
-            assertEquals(new TransitionResult.Unchanged(GameState.RUNNING), session.recordRunnerDeath(runner));
+            assertEquals(unchanged(GameState.RUNNING), session.recordRunnerDeath(runner));
             assertTrue(session.isEliminated(runner));
             assertEquals(List.of(secondRunner), session.remainingRunners());
 
@@ -262,7 +266,7 @@ class GameSessionTest {
             assignOneRunnerAndHunter();
             session.start(0);
             session.stop();
-            assertEquals(new TransitionResult.Unchanged(GameState.ENDED), session.unassignRole(runner));
+            assertEquals(unchanged(GameState.ENDED), session.unassignRole(runner));
             assertEquals(Optional.empty(), session.roleOf(runner));
         }
     }

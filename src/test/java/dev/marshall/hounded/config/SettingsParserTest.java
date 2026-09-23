@@ -12,16 +12,16 @@ class SettingsParserTest {
 
     private static Map<String, Object> validValues() {
         Map<String, Object> values = new HashMap<>();
-        values.put(ConfigKeys.HEADSTART_DEFAULT_SECONDS, 45);
-        values.put(ConfigKeys.COMPASS_UPDATE_MODE, "manual");
-        values.put(ConfigKeys.COMPASS_UPDATE_INTERVAL_TICKS, 10);
-        values.put(ConfigKeys.COMPASS_DISABLE_IN_NETHER_FOR_HUNTERS, true);
-        values.put(ConfigKeys.RULES_FREEZE_WHEN_LOOKED_AT, true);
-        values.put(ConfigKeys.RULES_RUNNER_CAN_ATTACK_HUNTERS, false);
-        values.put(ConfigKeys.RULES_FRIENDLY_FIRE, true);
-        values.put(ConfigKeys.DISPLAY_MODE, "Scoreboard");
-        values.put(ConfigKeys.DISPLAY_SHOW_DISTANCE, false);
-        values.put(ConfigKeys.QUICK_START_GUIDE, false);
+        values.put(ConfigKey.HEADSTART_DEFAULT_SECONDS.path(), 45);
+        values.put(ConfigKey.COMPASS_UPDATE_MODE.path(), "manual");
+        values.put(ConfigKey.COMPASS_UPDATE_INTERVAL_TICKS.path(), 10);
+        values.put(ConfigKey.COMPASS_DISABLE_IN_NETHER_FOR_HUNTERS.path(), true);
+        values.put(ConfigKey.RULES_FREEZE_WHEN_LOOKED_AT.path(), true);
+        values.put(ConfigKey.RULES_RUNNER_CAN_ATTACK_HUNTERS.path(), false);
+        values.put(ConfigKey.RULES_FRIENDLY_FIRE.path(), true);
+        values.put(ConfigKey.DISPLAY_MODE.path(), "Scoreboard");
+        values.put(ConfigKey.DISPLAY_SHOW_DISTANCE.path(), false);
+        values.put(ConfigKey.QUICK_START_GUIDE.path(), false);
         return values;
     }
 
@@ -50,16 +50,16 @@ class SettingsParserTest {
         SettingsParser.Result result = parser.parse(Map.of());
 
         assertEquals(Settings.DEFAULTS, result.settings());
-        assertEquals(10, result.warnings().size());
+        assertEquals(ConfigKey.values().length, result.warnings().size());
     }
 
     @Test
     void invalidValuesFallBackToDefaultsWithAWarningNamingTheKey() {
         Map<String, Object> values = validValues();
-        values.put(ConfigKeys.COMPASS_UPDATE_INTERVAL_TICKS, 0);
-        values.put(ConfigKeys.HEADSTART_DEFAULT_SECONDS, "soon");
-        values.put(ConfigKeys.DISPLAY_MODE, "hologram");
-        values.put(ConfigKeys.RULES_FRIENDLY_FIRE, "yes please");
+        values.put(ConfigKey.COMPASS_UPDATE_INTERVAL_TICKS.path(), 0);
+        values.put(ConfigKey.HEADSTART_DEFAULT_SECONDS.path(), "soon");
+        values.put(ConfigKey.DISPLAY_MODE.path(), "hologram");
+        values.put(ConfigKey.RULES_FRIENDLY_FIRE.path(), "yes please");
 
         SettingsParser.Result result = parser.parse(values);
 
@@ -71,13 +71,13 @@ class SettingsParserTest {
         assertEquals(Settings.DEFAULTS.displayMode(), result.settings().displayMode());
         assertEquals(Settings.DEFAULTS.friendlyFire(), result.settings().friendlyFire());
         assertEquals(4, result.warnings().size());
-        assertTrue(result.warnings().stream().anyMatch(w -> w.contains(ConfigKeys.DISPLAY_MODE)));
+        assertTrue(result.warnings().stream().anyMatch(w -> w.contains(ConfigKey.DISPLAY_MODE.path())));
     }
 
     @Test
     void zeroHeadstartIsAllowed() {
         Map<String, Object> values = validValues();
-        values.put(ConfigKeys.HEADSTART_DEFAULT_SECONDS, 0);
+        values.put(ConfigKey.HEADSTART_DEFAULT_SECONDS.path(), 0);
         assertEquals(0, parser.parse(values).settings().defaultHeadstartSeconds());
     }
 }

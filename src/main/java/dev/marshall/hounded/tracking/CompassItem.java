@@ -64,6 +64,5 @@ public final class CompassItem {
     public void pointAt(ItemStack compass, Location target) {
         Objects.requireNonNull(compass, "compass");
         Objects.requireNonNull(target, "target");
-        // Intentionally a no-op until the questions above are answered on a real server.
     }
 }
