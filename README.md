@@ -55,5 +55,12 @@ Every player-facing text is in `messages.yml`, in [MiniMessage](https://docs.adv
 ```
 Needs a JDK 25 that Gradle can find (Gradle itself can run on 21+). The jar goes to `build/libs/`. Formatting is enforced: run `./gradlew spotlessApply` if the build complains.
 
+## Local test server
+`test-server/` holds a Paper 26.2 server for development. Only `start.bat` is committed. To set it up on a fresh clone, download the Paper 26.2 jar from papermc.io as `test-server/paper.jar` and accept the EULA in `test-server/eula.txt`.
+```
+./gradlew deployToTestServer   # builds and copies the plugin to test-server/plugins/Hounded.jar
+test-server\start.bat          # uses JAVA25_HOME if set
+```
+
 ## License
 TBD.

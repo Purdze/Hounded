@@ -51,6 +51,14 @@ tasks.processResources {
     }
 }
 
+// Copies the plugin into the local test server; see test-server/start.bat.
+tasks.register<Copy>("deployToTestServer") {
+    from(tasks.jar)
+    into(layout.projectDirectory.dir("test-server/plugins"))
+    // A fixed name, so each deploy replaces the previous jar instead of piling up versions.
+    rename { "Hounded.jar" }
+}
+
 spotless {
     java {
         palantirJavaFormat(palantirJavaFormatVersion)
