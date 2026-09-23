@@ -1,0 +1,50 @@
+# Hounded messages, in MiniMessage format: https://docs.advntr.dev/minimessage/format.html
+# Words in <angle_brackets> that are not formatting tags are placeholders filled in by the plugin.
+# Missing keys fall back to the bundled English text. Apply changes with /hounded reload.
+
+prefix: "<dark_gray>[<gold>Hounded</gold>]</dark_gray> "
+
+quick-start-guide: |-
+  <gold><bold>Welcome to Hounded!</bold></gold> <gray>Start a round in three steps:</gray>
+  <yellow>1.</yellow> <white>/hounded runner add <gray>\<player></gray></white>
+  <yellow>2.</yellow> <white>/hounded hunter add <gray>\<player></gray></white>
+  <yellow>3.</yellow> <white>/hounded start <gray>[headstart seconds]</gray></white>
+  <gray>Type <white>/hounded help</white> for everything else.</gray>
+
+reload:
+  success: "<green>Config and messages reloaded.</green>"
+  failed: "<red>Reload failed, the previous config is still active. Check the console for details.</red>"
+
+role:
+  assigned: "<white><player></white> <gray>is now a</gray> <gold><role></gold><gray>.</gray>"
+  removed: "<white><player></white> <gray>no longer has a role.</gray>"
+  cleared: "<gray>Removed all</gray> <gold><role></gold><gray>s.</gray>"
+  list: "<gold><role></gold><gray>s:</gray> <white><players></white>"
+  list-empty: "<gray>There are no</gray> <gold><role></gold><gray>s.</gray>"
+  locked: "<red>Roles cannot be changed while a round is running. Use /hounded stop first.</red>"
+
+start:
+  headstart: "<green>The hunt begins!</green> <gray>Runners have</gray> <white><seconds></white> <gray>seconds of headstart.</gray>"
+  released: "<red><bold>The hunters have been released!</bold></red>"
+  no-runners: '<red>Add at least one runner first: /hounded runner add \<player></red>'
+  no-hunters: '<red>Add at least one hunter first: /hounded hunter add \<player></red>'
+  already-running: "<red>A round is already running. Use /hounded stop to end it.</red>"
+  negative-headstart: "<red>The headstart must be 0 or more seconds.</red>"
+
+stop:
+  stopped: "<yellow>The round was stopped.</yellow>"
+  not-running: "<red>No round is running.</red>"
+
+win:
+  runners: "<green><bold>The runners win!</bold></green> <gray>The dragon fell after</gray> <white><time></white><gray>.</gray>"
+  hunters: "<red><bold>The hunters win!</bold></red> <gray>Every runner was caught after</gray> <white><time></white><gray>.</gray>"
+
+compass:
+  name: "<gold>Tracking Compass</gold>"
+  how-to-use: "<gray>Your compass points at</gray> <white><runner></white><gray>. Left-click to switch runner. Right-click to update it now.</gray>"
+  no-data: "<yellow>No trail to follow yet: <white><runner></white> hasn't been seen in this dimension. Pointing at spawn.</yellow>"
+  disabled-in-nether: "<gray>Compass tracking is disabled in the Nether.</gray>"
+
+error:
+  no-permission: "<red>You don't have permission to do that.</red>"
+  player-not-found: "<red>No player named</red> <white><player></white> <red>is online.</red>"

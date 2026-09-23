@@ -1,0 +1,32 @@
+# Hounded configuration. Apply changes with /hounded reload (no restart needed).
+
+headstart:
+  # Seconds runners get before hunters are released, when /hounded start is run without a number.
+  # 0 = no headstart.
+  default-seconds: 30
+
+compass:
+  # auto   = compasses update on their own every update-interval-ticks.
+  # manual = hunters right-click the compass to update it.
+  update-mode: auto
+  # 20 ticks = 1 second. Minimum 1.
+  update-interval-ticks: 20
+  # If true, hunters' compasses do not track while the hunter is in the Nether.
+  disable-in-nether-for-hunters: false
+
+rules:
+  # Hunters are frozen while a runner is looking at them. Nobody dies from it.
+  freeze-when-looked-at: false
+  # Whether runners can damage hunters.
+  runner-can-attack-hunters: true
+  # Whether players on the same side can damage each other.
+  friendly-fire: false
+
+display:
+  # Where the timer and distance are shown: bossbar, scoreboard or none.
+  mode: bossbar
+  # Show hunters the distance to the runner they are tracking.
+  show-distance: true
+
+# Show admins a short "how to start" guide in chat when they join and no round has been played yet.
+quick-start-guide: true
