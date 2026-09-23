@@ -3,7 +3,6 @@ build/
 out/
 run/
 test-server/
-docs/
 .idea/
 *.iml
 .vscode/
