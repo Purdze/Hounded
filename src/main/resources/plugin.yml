@@ -1,0 +1,15 @@
+name: Hounded
+version: '${version}'
+main: dev.marshall.hounded.HoundedPlugin
+description: '${description}'
+# Minimum supported version, not a target. See docs/DECISIONS.md.
+api-version: '26.2'
+softdepend: [PlaceholderAPI]
+# Commands are registered through Paper's Brigadier lifecycle API, so there is no commands: block.
+permissions:
+  hounded.admin:
+    description: Use all /hounded admin commands.
+    default: op
+  hounded.compass:
+    description: Use the tracking compass.
+    default: true
