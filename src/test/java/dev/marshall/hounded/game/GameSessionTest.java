@@ -256,9 +256,25 @@ class GameSessionTest {
             session.start(30);
             UUID newcomer = UUID.randomUUID();
             assertEquals(rejected(RejectionReason.ROLES_LOCKED), session.assignRole(newcomer, Role.HUNTER));
-            assertEquals(rejected(RejectionReason.ROLES_LOCKED), session.unassignRole(runner));
+            assertEquals(rejected(RejectionReason.ROLES_LOCKED), session.unassignRole(runner, Role.RUNNER));
+            assertEquals(rejected(RejectionReason.ROLES_LOCKED), session.unassignRole(hunter, Role.RUNNER));
             assertEquals(rejected(RejectionReason.ROLES_LOCKED), session.clearRole(Role.HUNTER));
             assertEquals(Optional.of(Role.RUNNER), session.roleOf(runner));
+        }
+
+        @Test
+        void removingARoleThePlayerDoesNotHoldIsRejected() {
+            session.assignRole(hunter, Role.HUNTER);
+            assertEquals(rejected(RejectionReason.NOT_IN_ROLE), session.unassignRole(hunter, Role.RUNNER));
+            assertEquals(rejected(RejectionReason.NOT_IN_ROLE), session.unassignRole(runner, Role.RUNNER));
+            assertEquals(Optional.of(Role.HUNTER), session.roleOf(hunter));
+        }
+
+        @Test
+        void removingTheHeldRoleUnassignsThePlayer() {
+            session.assignRole(hunter, Role.HUNTER);
+            assertEquals(unchanged(GameState.LOBBY), session.unassignRole(hunter, Role.HUNTER));
+            assertEquals(Optional.empty(), session.roleOf(hunter));
         }
 
         @Test
@@ -266,7 +282,7 @@ class GameSessionTest {
             assignOneRunnerAndHunter();
             session.start(0);
             session.stop();
-            assertEquals(unchanged(GameState.ENDED), session.unassignRole(runner));
+            assertEquals(unchanged(GameState.ENDED), session.unassignRole(runner, Role.RUNNER));
             assertEquals(Optional.empty(), session.roleOf(runner));
         }
     }

@@ -9,6 +9,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 /**
  * One manhunt round and every state transition it can make. Pure Java so the whole state machine
@@ -48,15 +49,28 @@ public final class GameSession {
     }
 
     public TransitionResult assignRole(UUID player, Role role) {
-        return changeRoles(() -> roster.assign(player, role));
+        return changeRoles(() -> {
+            roster.assign(player, role);
+            return Optional.empty();
+        });
     }
 
-    public TransitionResult unassignRole(UUID player) {
-        return changeRoles(() -> roster.unassign(player));
+    /** Removes {@code role} from the player; rejected if they hold a different role or none. */
+    public TransitionResult unassignRole(UUID player, Role role) {
+        return changeRoles(() -> {
+            if (roster.roleOf(player).filter(role::equals).isEmpty()) {
+                return Optional.of(RejectionReason.NOT_IN_ROLE);
+            }
+            roster.unassign(player);
+            return Optional.empty();
+        });
     }
 
     public TransitionResult clearRole(Role role) {
-        return changeRoles(() -> roster.clear(role));
+        return changeRoles(() -> {
+            roster.clear(role);
+            return Optional.empty();
+        });
     }
 
     /** Starts a round. A headstart of 0 skips {@link GameState#HEADSTART}. */
@@ -163,13 +177,18 @@ public final class GameSession {
         return Duration.between(runningSince, until);
     }
 
-    /** Roles are locked during a round because changing them would silently change who can win. */
-    private TransitionResult changeRoles(Runnable change) {
+    /**
+     * Roles are locked during a round because changing them would silently change who can win.
+     *
+     * @param change applies the change, or returns why it can't
+     */
+    private TransitionResult changeRoles(Supplier<Optional<RejectionReason>> change) {
         if (state.isActive()) {
             return new TransitionResult.Rejected(RejectionReason.ROLES_LOCKED);
         }
-        change.run();
-        return new TransitionResult.Unchanged(state);
+        return change.get()
+                .<TransitionResult>map(TransitionResult.Rejected::new)
+                .orElseGet(() -> new TransitionResult.Unchanged(state));
     }
 
     private TransitionResult enterRunning(GameState from) {

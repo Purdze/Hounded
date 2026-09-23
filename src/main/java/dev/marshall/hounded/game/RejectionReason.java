@@ -9,6 +9,7 @@ public enum RejectionReason {
     NO_HUNTERS,
     NEGATIVE_HEADSTART,
     NOT_A_RUNNER,
+    NOT_IN_ROLE,
     ALREADY_ELIMINATED,
     ROLES_LOCKED
 }
