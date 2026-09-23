@@ -11,5 +11,6 @@ public enum RejectionReason {
     NOT_A_RUNNER,
     NOT_IN_ROLE,
     ALREADY_ELIMINATED,
+    NOT_AWAITING_RETURN,
     ROLES_LOCKED
 }

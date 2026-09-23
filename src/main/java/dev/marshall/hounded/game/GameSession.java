@@ -4,7 +4,9 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -13,13 +15,14 @@ import java.util.function.Supplier;
 
 /**
  * One manhunt round and every state transition it can make. Pure Java so the whole state machine
- * is unit-testable; the plugin feeds it events (ticks, deaths, dragon kill) and reacts to the
+ * is unit-testable; the plugin feeds it events (ticks, deaths, disconnects, dragon kill) and reacts to the
  * returned {@link TransitionResult}. Not thread-safe: call from the main thread only.
  */
 public final class GameSession {
     private final Clock clock;
     private final Roster roster = new Roster();
     private final Set<UUID> eliminatedRunners = new HashSet<>();
+    private final Map<UUID, Instant> rejoinDeadlines = new LinkedHashMap<>();
 
     private GameState state = GameState.LOBBY;
     private GameOutcome outcome;
@@ -81,8 +84,6 @@ public final class GameSession {
         if (!roster.hasAny(Role.HUNTER)) {
             return new TransitionResult.Rejected(RejectionReason.NO_HUNTERS);
         }
-        eliminatedRunners.clear();
-        outcome = null;
         if (headstartSeconds == 0) {
             return enterRunning(GameState.LOBBY);
         }
@@ -98,21 +99,43 @@ public final class GameSession {
         return new TransitionResult.Unchanged(state);
     }
 
-    public TransitionResult recordRunnerDeath(UUID player) {
-        Objects.requireNonNull(player, "player");
-        if (!state.isActive()) {
-            return new TransitionResult.Rejected(RejectionReason.NOT_ACTIVE);
+    /** A runner is out for the round, by dying or by not returning in time. */
+    public TransitionResult eliminateRunner(UUID player) {
+        return whenRunnerInRound(player, () -> {
+            eliminatedRunners.add(player);
+            rejoinDeadlines.remove(player);
+            if (remainingRunners().isEmpty()) {
+                return end(GameOutcome.HUNTERS_WIN);
+            }
+            return new TransitionResult.Unchanged(state);
+        });
+    }
+
+    /** The runner left the server; they stay in the round until {@code rejoinGrace} has passed. */
+    public TransitionResult recordRunnerLeft(UUID player, Duration rejoinGrace) {
+        if (rejoinGrace.isNegative()) {
+            throw new IllegalArgumentException("rejoinGrace must not be negative");
         }
-        if (roster.roleOf(player).filter(Role.RUNNER::equals).isEmpty()) {
-            return new TransitionResult.Rejected(RejectionReason.NOT_A_RUNNER);
-        }
-        if (!eliminatedRunners.add(player)) {
-            return new TransitionResult.Rejected(RejectionReason.ALREADY_ELIMINATED);
-        }
-        if (remainingRunners().isEmpty()) {
-            return end(GameOutcome.HUNTERS_WIN);
+        return whenRunnerInRound(player, () -> {
+            rejoinDeadlines.put(player, clock.instant().plus(rejoinGrace));
+            return new TransitionResult.Unchanged(state);
+        });
+    }
+
+    public TransitionResult recordRunnerReturned(UUID player) {
+        if (rejoinDeadlines.remove(Objects.requireNonNull(player, "player")) == null) {
+            return new TransitionResult.Rejected(RejectionReason.NOT_AWAITING_RETURN);
         }
         return new TransitionResult.Unchanged(state);
+    }
+
+    /** Runners who left and did not come back in time; the caller eliminates them. */
+    public List<UUID> runnersPastRejoinDeadline() {
+        Instant now = clock.instant();
+        return rejoinDeadlines.entrySet().stream()
+                .filter(entry -> !now.isBefore(entry.getValue()))
+                .map(Map.Entry::getKey)
+                .toList();
     }
 
     public TransitionResult recordDragonKilled() {
@@ -135,6 +158,7 @@ public final class GameSession {
             return new TransitionResult.Rejected(RejectionReason.NOT_ENDED);
         }
         eliminatedRunners.clear();
+        rejoinDeadlines.clear();
         outcome = null;
         headstartEndsAt = null;
         runningSince = null;
@@ -169,6 +193,27 @@ public final class GameSession {
         }
         Instant until = endedAt != null ? endedAt : clock.instant();
         return Duration.between(runningSince, until);
+    }
+
+    /** Runs {@code action} only for a runner who is still in an active round. */
+    private TransitionResult whenRunnerInRound(UUID player, Supplier<TransitionResult> action) {
+        return checkRunnerInRound(player)
+                .<TransitionResult>map(TransitionResult.Rejected::new)
+                .orElseGet(action);
+    }
+
+    private Optional<RejectionReason> checkRunnerInRound(UUID player) {
+        Objects.requireNonNull(player, "player");
+        if (!state.isActive()) {
+            return Optional.of(RejectionReason.NOT_ACTIVE);
+        }
+        if (roster.roleOf(player).filter(Role.RUNNER::equals).isEmpty()) {
+            return Optional.of(RejectionReason.NOT_A_RUNNER);
+        }
+        if (eliminatedRunners.contains(player)) {
+            return Optional.of(RejectionReason.ALREADY_ELIMINATED);
+        }
+        return Optional.empty();
     }
 
     private TransitionResult changeRoles(Runnable change) {

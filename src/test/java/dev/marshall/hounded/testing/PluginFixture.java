@@ -1,17 +1,21 @@
 package dev.marshall.hounded.testing;
 
 import dev.marshall.hounded.HoundedPlugin;
+import dev.marshall.hounded.config.ConfigKey;
 import dev.marshall.hounded.config.ConfigLoadException;
 import dev.marshall.hounded.config.ConfigLoader;
 import dev.marshall.hounded.config.ConfigService;
 import dev.marshall.hounded.config.MessageKey;
 import dev.marshall.hounded.config.PlaceholderNames;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.mockbukkit.mockbukkit.MockBukkit;
 import org.mockbukkit.mockbukkit.ServerMock;
 import org.mockbukkit.mockbukkit.entity.PlayerMock;
@@ -55,18 +59,30 @@ public final class PluginFixture implements AutoCloseable {
         return admin;
     }
 
-    /** Makes {@code runner} a runner and {@code admin} a hunter, through the real commands. */
-    public void assignRoles(PlayerMock admin, PlayerMock runner) {
-        admin.performCommand("hounded runner add " + runner.getName());
+    /** Makes {@code admin} a hunter and the others runners, through the real commands. */
+    public void assignRoles(PlayerMock admin, PlayerMock... runners) {
+        for (PlayerMock runner : runners) {
+            admin.performCommand("hounded runner add " + runner.getName());
+        }
         admin.performCommand("hounded hunter add " + admin.getName());
     }
 
-    /** Assigns roles and starts a round, then clears both players' chat. */
-    public void startRound(PlayerMock admin, PlayerMock runner, int headstartSeconds) {
-        assignRoles(admin, runner);
+    /** Assigns roles and starts a round, then clears everyone's chat. */
+    public void startRound(PlayerMock admin, int headstartSeconds, PlayerMock... runners) {
+        assignRoles(admin, runners);
         admin.performCommand("hounded start " + headstartSeconds);
-        messagesOf(admin);
-        messagesOf(runner);
+        server.getOnlinePlayers().forEach(player -> messagesOf((PlayerMock) player));
+    }
+
+    /** Changes one value in the plugin's config.yml and reloads {@link #config()}. */
+    public void setConfig(ConfigKey key, Object value) throws IOException {
+        File file = new File(plugin.getDataFolder(), ConfigLoader.CONFIG_FILE);
+        YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
+        yaml.set(key.path(), value);
+        yaml.save(file);
+        if (!config.reload()) {
+            throw new IllegalStateException("Reloading the edited config.yml failed");
+        }
     }
 
     public boolean hasScheduledTasks() {
@@ -76,6 +92,24 @@ public final class PluginFixture implements AutoCloseable {
     /** The chat line a player would see for {@code key}, as plain text. */
     public String chat(MessageKey key, TagResolver... placeholders) {
         return plain(config.messages().chat(key, placeholders));
+    }
+
+    /** A message whose {@code <player>} is {@code player}, plus any other placeholders. */
+    public String aboutPlayer(MessageKey key, PlayerMock player, TagResolver... placeholders) {
+        return chat(
+                key,
+                Placeholder.unparsed(PlaceholderNames.PLAYER, player.getName()),
+                TagResolver.resolver(placeholders));
+    }
+
+    /** The "left, has N seconds to come back" broadcast with the configured grace. */
+    public String runnerLeftMessage(PlayerMock runner) {
+        return aboutPlayer(
+                MessageKey.ROUND_RUNNER_LEFT,
+                runner,
+                Placeholder.unparsed(
+                        PlaceholderNames.SECONDS,
+                        Integer.toString(config.settings().runnerRejoinGraceSeconds())));
     }
 
     public String winMessage(MessageKey key, String huntTime) {

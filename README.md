@@ -28,8 +28,10 @@ All commands except `help` need `hounded.admin`. `add` and `remove` take an onli
 ## How a round works
 1. Add at least one runner and one hunter.
 2. `/hounded start 30` gives runners 30 seconds, then the hunters are released.
-3. Runners win when the ender dragon dies. Hunters win when every runner has died once.
-4. The result is announced with the hunt time, and the game returns to the lobby. Roles are kept for the next round.
+3. Runners win when the ender dragon dies. Hunters win when every runner is out.
+   - A runner who dies is out, and watches in spectator mode until the round ends (configurable).
+   - A runner who leaves the server has 5 minutes (configurable) to come back, or they're out too.
+4. The result is announced with the hunt time, and the game returns to the lobby. Spectating runners get their previous game mode back, and roles are kept for the next round.
 
 Roles can't be changed during a round. Use `/hounded stop` first.
 
@@ -49,6 +51,8 @@ Roles can't be changed during a round. Use `/hounded stop` first.
 | `rules.freeze-when-looked-at` | `false` | Hunters freeze while a runner looks at them. Nobody dies from it. |
 | `rules.runner-can-attack-hunters` | `true` | Runners may damage hunters. |
 | `rules.friendly-fire` | `false` | Players on the same side may damage each other. |
+| `rules.eliminated-runners-spectate` | `true` | Runners who are out watch in spectator mode until the round ends. |
+| `rules.runner-rejoin-grace-seconds` | `300` | Seconds a runner who leaves has to come back before they're out. `0` = out at once. |
 | `display.mode` | `bossbar` | `bossbar`, `scoreboard` or `none`. |
 | `display.show-distance` | `true` | Show hunters the distance to their target. |
 | `quick-start-guide` | `true` | Show admins a short start guide in chat. |

@@ -21,6 +21,11 @@ rules:
   runner-can-attack-hunters: true
   # Whether players on the same side can damage each other.
   friendly-fire: false
+  # Runners who are out (died, or didn't come back in time) watch in spectator mode until the round
+  # ends. If false, they keep playing but no longer count for the win.
+  eliminated-runners-spectate: true
+  # Seconds a runner who leaves the server has to come back before they are out. 0 = out at once.
+  runner-rejoin-grace-seconds: 300
 
 display:
   # Where the timer and distance are shown: bossbar, scoreboard or none.

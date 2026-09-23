@@ -9,6 +9,8 @@ public enum ConfigKey {
     RULES_FREEZE_WHEN_LOOKED_AT("rules.freeze-when-looked-at"),
     RULES_RUNNER_CAN_ATTACK_HUNTERS("rules.runner-can-attack-hunters"),
     RULES_FRIENDLY_FIRE("rules.friendly-fire"),
+    RULES_ELIMINATED_RUNNERS_SPECTATE("rules.eliminated-runners-spectate"),
+    RULES_RUNNER_REJOIN_GRACE_SECONDS("rules.runner-rejoin-grace-seconds"),
     DISPLAY_MODE("display.mode"),
     DISPLAY_SHOW_DISTANCE("display.show-distance"),
     QUICK_START_GUIDE("quick-start-guide");

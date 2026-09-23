@@ -15,8 +15,8 @@ import org.bukkit.plugin.Plugin;
 
 /** Reads {@code config.yml} and {@code messages.yml} from the plugin folder, writing defaults on first run. */
 public final class ConfigLoader {
-    static final String CONFIG_FILE = "config.yml";
-    static final String MESSAGES_FILE = "messages.yml";
+    public static final String CONFIG_FILE = "config.yml";
+    public static final String MESSAGES_FILE = "messages.yml";
 
     private final Plugin plugin;
     private final SettingsParser settingsParser = new SettingsParser();

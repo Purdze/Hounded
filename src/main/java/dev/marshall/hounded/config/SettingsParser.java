@@ -38,6 +38,8 @@ public final class SettingsParser {
                 reader.bool(ConfigKey.RULES_FREEZE_WHEN_LOOKED_AT, defaults.freezeWhenLookedAt()),
                 reader.bool(ConfigKey.RULES_RUNNER_CAN_ATTACK_HUNTERS, defaults.runnerCanAttackHunters()),
                 reader.bool(ConfigKey.RULES_FRIENDLY_FIRE, defaults.friendlyFire()),
+                reader.bool(ConfigKey.RULES_ELIMINATED_RUNNERS_SPECTATE, defaults.eliminatedRunnersSpectate()),
+                reader.intAtLeast(ConfigKey.RULES_RUNNER_REJOIN_GRACE_SECONDS, 0, defaults.runnerRejoinGraceSeconds()),
                 reader.enumValue(ConfigKey.DISPLAY_MODE, defaults.displayMode()),
                 reader.bool(ConfigKey.DISPLAY_SHOW_DISTANCE, defaults.showDistance()),
                 reader.bool(ConfigKey.QUICK_START_GUIDE, defaults.showQuickStartGuide()));

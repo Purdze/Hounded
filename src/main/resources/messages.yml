@@ -49,6 +49,12 @@ stop:
   stopped: "<yellow>The round was stopped.</yellow>"
   not-running: "<red>No round is running.</red>"
 
+round:
+  runner-eliminated: "<white><player></white> <red>is out!</red>"
+  runner-left: "<white><player></white> <gray>left and has</gray> <white><seconds></white> <gray>seconds to come back.</gray>"
+  runner-returned: "<white><player></white> <gray>is back in the hunt.</gray>"
+  runner-timed-out: "<white><player></white> <red>didn't come back in time and is out.</red>"
+
 win:
   runners: "<green><bold>The runners win!</bold></green> <gray>The dragon fell after</gray> <white><time></white><gray>.</gray>"
   hunters: "<red><bold>The hunters win!</bold></red> <gray>Every runner was caught after</gray> <white><time></white><gray>.</gray>"

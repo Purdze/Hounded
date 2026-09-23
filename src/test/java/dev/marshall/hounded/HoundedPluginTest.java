@@ -32,7 +32,7 @@ class HoundedPluginTest {
 
     @Test
     void disablingCancelsTheHeadstartTimer() {
-        fixture.startRound(fixture.addAdmin("Admin"), fixture.server().addPlayer("Runner"), 30);
+        fixture.startRound(fixture.addAdmin("Admin"), 30, fixture.server().addPlayer("Runner"));
         assertTrue(fixture.hasScheduledTasks());
 
         fixture.server().getPluginManager().disablePlugin(fixture.plugin());

@@ -41,8 +41,8 @@ class HoundedCommandTest {
         return messagesOf(sender);
     }
 
-    private String roleMessage(MessageKey key, String player, Role role) {
-        return fixture.chat(key, Placeholder.unparsed(PlaceholderNames.PLAYER, player), replies.roleNames(role));
+    private String roleMessage(MessageKey key, PlayerMock player, Role role) {
+        return fixture.aboutPlayer(key, player, replies.roleNames(role));
     }
 
     private String roleMessage(MessageKey key, Role role, TagResolver... extra) {
@@ -58,7 +58,7 @@ class HoundedCommandTest {
     @Test
     void addAssignsTheRole() {
         assertEquals(
-                List.of(roleMessage(MessageKey.ROLE_ASSIGNED, "Steve", Role.RUNNER)),
+                List.of(roleMessage(MessageKey.ROLE_ASSIGNED, steve, Role.RUNNER)),
                 run(admin, "hounded runner add Steve"));
     }
 
@@ -85,7 +85,7 @@ class HoundedCommandTest {
         run(admin, "hounded runner add Steve");
 
         assertEquals(
-                List.of(roleMessage(MessageKey.ROLE_REMOVED, "Steve", Role.RUNNER)),
+                List.of(roleMessage(MessageKey.ROLE_REMOVED, steve, Role.RUNNER)),
                 run(admin, "hounded runner remove Steve"));
         assertEquals(List.of(roleMessage(MessageKey.ROLE_LIST_EMPTY, Role.RUNNER)), run(admin, "hounded runner list"));
     }
@@ -95,7 +95,7 @@ class HoundedCommandTest {
         run(admin, "hounded hunter add Steve");
 
         assertEquals(
-                List.of(roleMessage(MessageKey.ROLE_NOT_ASSIGNED, "Steve", Role.RUNNER)),
+                List.of(roleMessage(MessageKey.ROLE_NOT_ASSIGNED, steve, Role.RUNNER)),
                 run(admin, "hounded runner remove Steve"));
     }
 
@@ -126,25 +126,25 @@ class HoundedCommandTest {
 
     @Test
     void startingTwiceIsRefused() {
-        fixture.startRound(admin, steve, 0);
+        fixture.startRound(admin, 0, steve);
 
         assertEquals(List.of(fixture.chat(MessageKey.START_ALREADY_RUNNING)), run(admin, "hounded start 0"));
     }
 
     @Test
     void rolesAreLockedDuringARound() {
-        fixture.startRound(admin, steve, 0);
+        fixture.startRound(admin, 0, steve);
 
         assertEquals(List.of(fixture.chat(MessageKey.ROLE_LOCKED)), run(admin, "hounded hunter add Steve"));
     }
 
     @Test
     void stopEndsTheRoundAndReturnsToTheLobby() {
-        fixture.startRound(admin, steve, 0);
+        fixture.startRound(admin, 0, steve);
 
         assertEquals(List.of(fixture.chat(MessageKey.STOP_STOPPED)), run(admin, "hounded stop"));
         assertEquals(
-                List.of(roleMessage(MessageKey.ROLE_ASSIGNED, "Steve", Role.HUNTER)),
+                List.of(roleMessage(MessageKey.ROLE_ASSIGNED, steve, Role.HUNTER)),
                 run(admin, "hounded hunter add Steve"));
     }
 

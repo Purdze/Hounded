@@ -19,6 +19,8 @@ class SettingsParserTest {
         values.put(ConfigKey.RULES_FREEZE_WHEN_LOOKED_AT.path(), true);
         values.put(ConfigKey.RULES_RUNNER_CAN_ATTACK_HUNTERS.path(), false);
         values.put(ConfigKey.RULES_FRIENDLY_FIRE.path(), true);
+        values.put(ConfigKey.RULES_ELIMINATED_RUNNERS_SPECTATE.path(), false);
+        values.put(ConfigKey.RULES_RUNNER_REJOIN_GRACE_SECONDS.path(), 60);
         values.put(ConfigKey.DISPLAY_MODE.path(), "Scoreboard");
         values.put(ConfigKey.DISPLAY_SHOW_DISTANCE.path(), false);
         values.put(ConfigKey.QUICK_START_GUIDE.path(), false);
@@ -38,6 +40,8 @@ class SettingsParserTest {
                         true,
                         false,
                         true,
+                        false,
+                        60,
                         DisplayMode.SCOREBOARD,
                         false,
                         false),
@@ -60,6 +64,7 @@ class SettingsParserTest {
         values.put(ConfigKey.HEADSTART_DEFAULT_SECONDS.path(), "soon");
         values.put(ConfigKey.DISPLAY_MODE.path(), "hologram");
         values.put(ConfigKey.RULES_FRIENDLY_FIRE.path(), "yes please");
+        values.put(ConfigKey.RULES_RUNNER_REJOIN_GRACE_SECONDS.path(), -1);
 
         SettingsParser.Result result = parser.parse(values);
 
@@ -70,7 +75,9 @@ class SettingsParserTest {
                 Settings.DEFAULTS.defaultHeadstartSeconds(), result.settings().defaultHeadstartSeconds());
         assertEquals(Settings.DEFAULTS.displayMode(), result.settings().displayMode());
         assertEquals(Settings.DEFAULTS.friendlyFire(), result.settings().friendlyFire());
-        assertEquals(4, result.warnings().size());
+        assertEquals(
+                Settings.DEFAULTS.runnerRejoinGraceSeconds(), result.settings().runnerRejoinGraceSeconds());
+        assertEquals(5, result.warnings().size());
         assertTrue(result.warnings().stream().anyMatch(w -> w.contains(ConfigKey.DISPLAY_MODE.path())));
     }
 

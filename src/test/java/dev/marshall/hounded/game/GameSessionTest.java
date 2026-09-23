@@ -143,7 +143,7 @@ class GameSessionTest {
         void onlyRunnerDyingMeansHuntersWin() {
             assignOneRunnerAndHunter();
             session.start(0);
-            assertEquals(changed(GameState.RUNNING, GameState.ENDED), session.recordRunnerDeath(runner));
+            assertEquals(changed(GameState.RUNNING, GameState.ENDED), session.eliminateRunner(runner));
             assertEquals(Optional.of(GameOutcome.HUNTERS_WIN), session.outcome());
         }
 
@@ -153,11 +153,11 @@ class GameSessionTest {
             session.assignRole(secondRunner, Role.RUNNER);
             session.start(0);
 
-            assertEquals(unchanged(GameState.RUNNING), session.recordRunnerDeath(runner));
+            assertEquals(unchanged(GameState.RUNNING), session.eliminateRunner(runner));
             assertTrue(session.isEliminated(runner));
             assertEquals(List.of(secondRunner), session.remainingRunners());
 
-            assertEquals(changed(GameState.RUNNING, GameState.ENDED), session.recordRunnerDeath(secondRunner));
+            assertEquals(changed(GameState.RUNNING, GameState.ENDED), session.eliminateRunner(secondRunner));
             assertEquals(Optional.of(GameOutcome.HUNTERS_WIN), session.outcome());
         }
 
@@ -166,8 +166,8 @@ class GameSessionTest {
             assignOneRunnerAndHunter();
             session.assignRole(secondRunner, Role.RUNNER);
             session.start(0);
-            session.recordRunnerDeath(runner);
-            assertEquals(rejected(RejectionReason.ALREADY_ELIMINATED), session.recordRunnerDeath(runner));
+            session.eliminateRunner(runner);
+            assertEquals(rejected(RejectionReason.ALREADY_ELIMINATED), session.eliminateRunner(runner));
             assertEquals(GameState.RUNNING, session.state());
         }
 
@@ -175,13 +175,13 @@ class GameSessionTest {
         void hunterDeathIsNotARunnerDeath() {
             assignOneRunnerAndHunter();
             session.start(0);
-            assertEquals(rejected(RejectionReason.NOT_A_RUNNER), session.recordRunnerDeath(hunter));
+            assertEquals(rejected(RejectionReason.NOT_A_RUNNER), session.eliminateRunner(hunter));
         }
 
         @Test
         void deathsAndDragonOutsideARoundAreRejected() {
             assignOneRunnerAndHunter();
-            assertEquals(rejected(RejectionReason.NOT_ACTIVE), session.recordRunnerDeath(runner));
+            assertEquals(rejected(RejectionReason.NOT_ACTIVE), session.eliminateRunner(runner));
             assertEquals(rejected(RejectionReason.NOT_ACTIVE), session.recordDragonKilled());
         }
 
@@ -193,6 +193,99 @@ class GameSessionTest {
             session.recordDragonKilled();
             clock.advance(Duration.ofMinutes(5));
             assertEquals(Duration.ofSeconds(42), session.elapsedHuntTime());
+        }
+    }
+
+    @Nested
+    class RejoinWindow {
+        private static final Duration GRACE = Duration.ofMinutes(5);
+
+        @Test
+        void runnerWhoReturnsInTimeStaysIn() {
+            assignOneRunnerAndHunter();
+            session.start(0);
+
+            assertEquals(unchanged(GameState.RUNNING), session.recordRunnerLeft(runner, GRACE));
+            clock.advance(GRACE.minusSeconds(1));
+            assertEquals(unchanged(GameState.RUNNING), session.recordRunnerReturned(runner));
+
+            clock.advance(GRACE);
+            assertEquals(List.of(), session.runnersPastRejoinDeadline());
+            assertEquals(List.of(runner), session.remainingRunners());
+        }
+
+        @Test
+        void runnerWhoStaysAwayIsReportedOnceTheDeadlinePasses() {
+            assignOneRunnerAndHunter();
+            session.start(0);
+            session.recordRunnerLeft(runner, GRACE);
+
+            clock.advance(GRACE.minusSeconds(1));
+            assertEquals(List.of(), session.runnersPastRejoinDeadline());
+            clock.advance(Duration.ofSeconds(1));
+            assertEquals(List.of(runner), session.runnersPastRejoinDeadline());
+        }
+
+        @Test
+        void zeroGraceExpiresImmediately() {
+            assignOneRunnerAndHunter();
+            session.start(0);
+            session.recordRunnerLeft(runner, Duration.ZERO);
+
+            assertEquals(List.of(runner), session.runnersPastRejoinDeadline());
+        }
+
+        @Test
+        void awayRunnerStillCountsAsRemaining() {
+            assignOneRunnerAndHunter();
+            session.start(0);
+            session.recordRunnerLeft(runner, GRACE);
+
+            assertEquals(List.of(runner), session.remainingRunners());
+            assertEquals(GameState.RUNNING, session.state());
+        }
+
+        @Test
+        void lastRunnerTimingOutMeansHuntersWin() {
+            assignOneRunnerAndHunter();
+            session.start(0);
+            session.recordRunnerLeft(runner, Duration.ZERO);
+
+            assertEquals(changed(GameState.RUNNING, GameState.ENDED), session.eliminateRunner(runner));
+            assertEquals(Optional.of(GameOutcome.HUNTERS_WIN), session.outcome());
+            assertEquals(List.of(), session.runnersPastRejoinDeadline());
+        }
+
+        @Test
+        void onlyActiveRunnersStillInTheRoundCanLeave() {
+            assignOneRunnerAndHunter();
+            session.assignRole(secondRunner, Role.RUNNER);
+            assertEquals(rejected(RejectionReason.NOT_ACTIVE), session.recordRunnerLeft(runner, GRACE));
+
+            session.start(0);
+            session.eliminateRunner(runner);
+            assertEquals(rejected(RejectionReason.ALREADY_ELIMINATED), session.recordRunnerLeft(runner, GRACE));
+            assertEquals(rejected(RejectionReason.NOT_A_RUNNER), session.recordRunnerLeft(hunter, GRACE));
+        }
+
+        @Test
+        void returningWithoutHavingLeftIsRejected() {
+            assignOneRunnerAndHunter();
+            session.start(0);
+
+            assertEquals(rejected(RejectionReason.NOT_AWAITING_RETURN), session.recordRunnerReturned(runner));
+        }
+
+        @Test
+        void resetForgetsRunnersWhoLeft() {
+            assignOneRunnerAndHunter();
+            session.assignRole(secondRunner, Role.RUNNER);
+            session.start(0);
+            session.recordRunnerLeft(runner, Duration.ZERO);
+            session.stop();
+            session.reset();
+
+            assertEquals(List.of(), session.runnersPastRejoinDeadline());
         }
     }
 
@@ -222,7 +315,7 @@ class GameSessionTest {
         void resetReturnsToLobbyAndKeepsRoles() {
             assignOneRunnerAndHunter();
             session.start(0);
-            session.recordRunnerDeath(runner);
+            session.eliminateRunner(runner);
 
             assertEquals(changed(GameState.ENDED, GameState.LOBBY), session.reset());
             assertEquals(Optional.empty(), session.outcome());

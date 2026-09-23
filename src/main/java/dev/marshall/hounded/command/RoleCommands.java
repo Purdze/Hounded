@@ -1,6 +1,7 @@
 package dev.marshall.hounded.command;
 
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import dev.marshall.hounded.PlayerNames;
 import dev.marshall.hounded.config.MessageKey;
 import dev.marshall.hounded.config.PlaceholderNames;
 import dev.marshall.hounded.game.GameSession;
@@ -13,7 +14,6 @@ import io.papermc.paper.command.brigadier.argument.resolvers.selector.PlayerSele
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.function.BiFunction;
 import net.kyori.adventure.text.Component;
@@ -67,7 +67,10 @@ final class RoleCommands {
         }
         Component names = Component.join(
                 JoinConfiguration.commas(true),
-                players.stream().map(this::displayName).map(Component::text).toList());
+                players.stream()
+                        .map(player -> PlayerNames.displayName(server, player))
+                        .map(Component::text)
+                        .toList());
         return replies.send(
                 source,
                 MessageKey.ROLE_LIST,
@@ -77,10 +80,5 @@ final class RoleCommands {
 
     private int clear(CommandSourceStack source, Role role) {
         return replies.reply(source, session.clearRole(role), MessageKey.ROLE_CLEARED, replies.roleNames(role));
-    }
-
-    /** A player who never joined this server has no name; show the UUID rather than nothing. */
-    private String displayName(UUID player) {
-        return Optional.ofNullable(server.getOfflinePlayer(player).getName()).orElse(player.toString());
     }
 }

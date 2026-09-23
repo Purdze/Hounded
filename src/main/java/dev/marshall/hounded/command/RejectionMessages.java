@@ -27,7 +27,7 @@ final class RejectionMessages {
             case ROLES_LOCKED -> MessageKey.ROLE_LOCKED;
             case NOT_IN_ROLE -> MessageKey.ROLE_NOT_ASSIGNED;
             // Only listeners trigger these; reaching one from a command is a bug.
-            case NOT_ENDED, NOT_A_RUNNER, ALREADY_ELIMINATED -> MessageKey.ERROR_INTERNAL;
+            case NOT_ENDED, NOT_A_RUNNER, ALREADY_ELIMINATED, NOT_AWAITING_RETURN -> MessageKey.ERROR_INTERNAL;
         };
     }
 }
