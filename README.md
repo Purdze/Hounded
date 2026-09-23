@@ -1,0 +1,59 @@
+# Hounded – Manhunt
+
+A manhunt game mode for Paper: one or more speedrunners try to beat the game while hunters track them with a compass that works in every dimension.
+
+> **Status: early scaffold (0.1.0-SNAPSHOT).** The game rules, compass target logic and config loading are built and tested. Commands, listeners and the live compass are **not implemented yet**, so the plugin can't run a round in-game.
+
+## Requirements
+- Paper **26.2**
+- Java **25**
+
+## Install
+1. Download `hounded-<version>.jar` (or build it, see below) and put it in your server's `plugins/` folder.
+2. Start the server. Hounded creates `plugins/Hounded/config.yml` and `messages.yml`.
+3. Optional: install PlaceholderAPI for placeholders (planned).
+
+## Commands (planned for v1)
+| Command | Description |
+|---|---|
+| `/hounded runner add\|remove\|list\|clear [player]` | Manage runners |
+| `/hounded hunter add\|remove\|list\|clear [player]` | Manage hunters |
+| `/hounded start [seconds]` | Start a round with an optional headstart (0 = none) |
+| `/hounded stop` | Stop the current round |
+| `/hounded compass` | Get a tracking compass |
+| `/hounded reload` | Reload `config.yml` and `messages.yml` |
+| `/hounded help` | Show help |
+
+## Permissions
+| Node | Default | Grants |
+|---|---|---|
+| `hounded.admin` | op | All admin commands |
+| `hounded.compass` | everyone | Using the tracking compass |
+
+## Configuration (`config.yml`)
+| Key | Default | Meaning |
+|---|---|---|
+| `headstart.default-seconds` | `30` | Headstart when `/hounded start` has no number. `0` = none. |
+| `compass.update-mode` | `auto` | `auto` updates on a timer; `manual` updates on right-click. |
+| `compass.update-interval-ticks` | `20` | Auto-update interval (20 ticks = 1 s). Minimum 1. |
+| `compass.disable-in-nether-for-hunters` | `false` | Turn off tracking while a hunter is in the Nether. |
+| `rules.freeze-when-looked-at` | `false` | Hunters freeze while a runner looks at them. Nobody dies from it. |
+| `rules.runner-can-attack-hunters` | `true` | Runners may damage hunters. |
+| `rules.friendly-fire` | `false` | Players on the same side may damage each other. |
+| `display.mode` | `bossbar` | `bossbar`, `scoreboard` or `none`. |
+| `display.show-distance` | `true` | Show hunters the distance to their target. |
+| `quick-start-guide` | `true` | Show admins a short start guide in chat. |
+
+Invalid values fall back to the default. The console says which key was wrong.
+
+## Messages (`messages.yml`)
+Every player-facing text is in `messages.yml`, in [MiniMessage](https://docs.advntr.dev/minimessage/format.html) format, so you can recolour or translate it. Keys missing from your file fall back to the bundled English.
+
+## Building
+```
+./gradlew build
+```
+Needs a JDK 25 that Gradle can find (Gradle itself can run on 21+). The jar goes to `build/libs/`. Formatting is enforced: run `./gradlew spotlessApply` if the build complains.
+
+## License
+TBD.
