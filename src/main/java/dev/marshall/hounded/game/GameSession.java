@@ -49,10 +49,7 @@ public final class GameSession {
     }
 
     public TransitionResult assignRole(UUID player, Role role) {
-        return changeRoles(() -> {
-            roster.assign(player, role);
-            return Optional.empty();
-        });
+        return changeRoles(() -> roster.assign(player, role));
     }
 
     /** Removes {@code role} from the player; rejected if they hold a different role or none. */
@@ -67,10 +64,7 @@ public final class GameSession {
     }
 
     public TransitionResult clearRole(Role role) {
-        return changeRoles(() -> {
-            roster.clear(role);
-            return Optional.empty();
-        });
+        return changeRoles(() -> roster.clear(role));
     }
 
     /** Starts a round. A headstart of 0 skips {@link GameState#HEADSTART}. */
@@ -175,6 +169,13 @@ public final class GameSession {
         }
         Instant until = endedAt != null ? endedAt : clock.instant();
         return Duration.between(runningSince, until);
+    }
+
+    private TransitionResult changeRoles(Runnable change) {
+        return changeRoles(() -> {
+            change.run();
+            return Optional.empty();
+        });
     }
 
     /**

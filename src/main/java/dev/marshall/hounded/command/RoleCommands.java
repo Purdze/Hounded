@@ -1,12 +1,11 @@
 package dev.marshall.hounded.command;
 
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import com.mojang.brigadier.context.CommandContext;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import dev.marshall.hounded.config.MessageKey;
 import dev.marshall.hounded.config.PlaceholderNames;
 import dev.marshall.hounded.game.GameSession;
 import dev.marshall.hounded.game.Role;
+import dev.marshall.hounded.game.TransitionResult;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
 import io.papermc.paper.command.brigadier.argument.ArgumentTypes;
@@ -16,10 +15,10 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.BiFunction;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
-import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.Server;
 import org.bukkit.entity.Player;
 
@@ -39,32 +38,26 @@ final class RoleCommands {
 
     LiteralArgumentBuilder<CommandSourceStack> build(Role role) {
         return Commands.literal(role.name().toLowerCase(Locale.ROOT))
-                .then(Commands.literal("add")
-                        .then(Commands.argument(PLAYER_ARGUMENT, ArgumentTypes.player())
-                                .executes(context -> add(context, role))))
-                .then(Commands.literal("remove")
-                        .then(Commands.argument(PLAYER_ARGUMENT, ArgumentTypes.player())
-                                .executes(context -> remove(context, role))))
+                .then(playerAction("add", role, session::assignRole, MessageKey.ROLE_ASSIGNED))
+                .then(playerAction("remove", role, session::unassignRole, MessageKey.ROLE_REMOVED))
                 .then(Commands.literal("list").executes(context -> list(context.getSource(), role)))
                 .then(Commands.literal("clear").executes(context -> clear(context.getSource(), role)));
     }
 
-    private int add(CommandContext<CommandSourceStack> context, Role role) throws CommandSyntaxException {
-        Player target = targetPlayer(context);
-        return replies.reply(
-                context.getSource(),
-                session.assignRole(target.getUniqueId(), role),
-                MessageKey.ROLE_ASSIGNED,
-                playerAndRole(target, role));
-    }
-
-    private int remove(CommandContext<CommandSourceStack> context, Role role) throws CommandSyntaxException {
-        Player target = targetPlayer(context);
-        return replies.reply(
-                context.getSource(),
-                session.unassignRole(target.getUniqueId(), role),
-                MessageKey.ROLE_REMOVED,
-                playerAndRole(target, role));
+    private LiteralArgumentBuilder<CommandSourceStack> playerAction(
+            String name, Role role, BiFunction<UUID, Role, TransitionResult> action, MessageKey successKey) {
+        return Commands.literal(name)
+                .then(Commands.argument(PLAYER_ARGUMENT, ArgumentTypes.player()).executes(context -> {
+                    Player target = context.getArgument(PLAYER_ARGUMENT, PlayerSelectorArgumentResolver.class)
+                            .resolve(context.getSource())
+                            .getFirst();
+                    return replies.reply(
+                            context.getSource(),
+                            action.apply(target.getUniqueId(), role),
+                            successKey,
+                            Placeholder.unparsed(PlaceholderNames.PLAYER, target.getName()),
+                            replies.roleNames(role));
+                }));
     }
 
     private int list(CommandSourceStack source, Role role) {
@@ -84,17 +77,6 @@ final class RoleCommands {
 
     private int clear(CommandSourceStack source, Role role) {
         return replies.reply(source, session.clearRole(role), MessageKey.ROLE_CLEARED, replies.roleNames(role));
-    }
-
-    private static Player targetPlayer(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-        return context.getArgument(PLAYER_ARGUMENT, PlayerSelectorArgumentResolver.class)
-                .resolve(context.getSource())
-                .getFirst();
-    }
-
-    private TagResolver playerAndRole(Player player, Role role) {
-        return TagResolver.resolver(
-                Placeholder.unparsed(PlaceholderNames.PLAYER, player.getName()), replies.roleNames(role));
     }
 
     /** A player who never joined this server has no name; show the UUID rather than nothing. */

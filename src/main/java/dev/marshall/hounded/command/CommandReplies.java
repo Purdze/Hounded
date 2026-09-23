@@ -3,6 +3,7 @@ package dev.marshall.hounded.command;
 import com.mojang.brigadier.Command;
 import dev.marshall.hounded.config.ConfigService;
 import dev.marshall.hounded.config.MessageKey;
+import dev.marshall.hounded.config.Messages;
 import dev.marshall.hounded.config.PlaceholderNames;
 import dev.marshall.hounded.game.Role;
 import dev.marshall.hounded.game.TransitionResult;
@@ -28,36 +29,31 @@ final class CommandReplies {
         return Command.SINGLE_SUCCESS;
     }
 
-    /** Sends {@code successKey}, or the rejection's message if the change was refused. */
     int reply(CommandSourceStack source, TransitionResult result, MessageKey successKey, TagResolver... placeholders) {
-        MessageKey key = result instanceof TransitionResult.Rejected rejected
-                ? RejectionMessages.keyFor(rejected.reason())
-                : successKey;
-        return send(source, key, placeholders);
+        return send(source, RejectionMessages.keyFor(result).orElse(successKey), placeholders);
     }
 
     /** Only speaks up on rejection, for actions whose success is already broadcast to everyone. */
     int replyIfRejected(CommandSourceStack source, TransitionResult result) {
-        if (result instanceof TransitionResult.Rejected rejected) {
-            send(source, RejectionMessages.keyFor(rejected.reason()));
-        }
+        RejectionMessages.keyFor(result).ifPresent(key -> send(source, key));
         return Command.SINGLE_SUCCESS;
     }
 
     /** Both {@code <role>} and {@code <roles>}, rendered from the current messages. */
     TagResolver roleNames(Role role) {
-        MessageKey singular = switch (role) {
-            case RUNNER -> MessageKey.ROLE_NAME_RUNNER;
-            case HUNTER -> MessageKey.ROLE_NAME_HUNTER;
-        };
-        MessageKey plural = switch (role) {
-            case RUNNER -> MessageKey.ROLE_NAME_RUNNERS;
-            case HUNTER -> MessageKey.ROLE_NAME_HUNTERS;
-        };
+        RoleNameKeys keys = RoleNameKeys.of(role);
+        Messages messages = configService.messages();
         return TagResolver.resolver(
-                Placeholder.component(
-                        PlaceholderNames.ROLE, configService.messages().render(singular)),
-                Placeholder.component(
-                        PlaceholderNames.ROLES, configService.messages().render(plural)));
+                Placeholder.component(PlaceholderNames.ROLE, messages.render(keys.singular())),
+                Placeholder.component(PlaceholderNames.ROLES, messages.render(keys.plural())));
+    }
+
+    private record RoleNameKeys(MessageKey singular, MessageKey plural) {
+        static RoleNameKeys of(Role role) {
+            return switch (role) {
+                case RUNNER -> new RoleNameKeys(MessageKey.ROLE_NAME_RUNNER, MessageKey.ROLE_NAME_RUNNERS);
+                case HUNTER -> new RoleNameKeys(MessageKey.ROLE_NAME_HUNTER, MessageKey.ROLE_NAME_HUNTERS);
+            };
+        }
     }
 }

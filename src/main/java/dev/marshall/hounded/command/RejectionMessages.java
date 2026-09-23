@@ -2,13 +2,22 @@ package dev.marshall.hounded.command;
 
 import dev.marshall.hounded.config.MessageKey;
 import dev.marshall.hounded.game.RejectionReason;
+import dev.marshall.hounded.game.TransitionResult;
+import java.util.Optional;
 
 /** Which message explains a rejection. Exhaustive, so a new reason must be given a message. */
 final class RejectionMessages {
 
     private RejectionMessages() {}
 
-    static MessageKey keyFor(RejectionReason reason) {
+    /** @return the message explaining why {@code result} was refused; empty if it wasn't */
+    static Optional<MessageKey> keyFor(TransitionResult result) {
+        return result instanceof TransitionResult.Rejected rejected
+                ? Optional.of(keyFor(rejected.reason()))
+                : Optional.empty();
+    }
+
+    private static MessageKey keyFor(RejectionReason reason) {
         return switch (reason) {
             case NOT_IN_LOBBY -> MessageKey.START_ALREADY_RUNNING;
             case NOT_ACTIVE -> MessageKey.STOP_NOT_RUNNING;
