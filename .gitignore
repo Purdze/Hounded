@@ -2,8 +2,8 @@
 build/
 out/
 run/
-test-server/*
-!test-server/start.bat
+test-server/
+docs/
 .idea/
 *.iml
 .vscode/

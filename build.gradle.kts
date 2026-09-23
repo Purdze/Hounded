@@ -7,7 +7,6 @@ group = "dev.marshall"
 version = "0.1.0-SNAPSHOT"
 description = "Hounded – Manhunt: speedrunners vs hunters for Paper"
 
-// Versions chosen and justified in docs/DECISIONS.md.
 val paperApiVersion = "26.2.build.129-stable"
 val junitVersion = "5.14.4"
 val palantirJavaFormatVersion = "2.99.0"
@@ -51,7 +50,7 @@ tasks.processResources {
     }
 }
 
-// Copies the plugin into the local test server; see test-server/start.bat.
+// Copies the plugin into the local test server.
 tasks.register<Copy>("deployToTestServer") {
     from(tasks.jar)
     into(layout.projectDirectory.dir("test-server/plugins"))
