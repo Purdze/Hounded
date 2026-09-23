@@ -109,7 +109,7 @@ public final class PluginFixture implements AutoCloseable {
                 runner,
                 Placeholder.unparsed(
                         PlaceholderNames.SECONDS,
-                        Integer.toString(config.settings().runnerRejoinGraceSeconds())));
+                        Integer.toString(config.settings().rules().runnerRejoinGraceSeconds())));
     }
 
     public String winMessage(MessageKey key, String huntTime) {

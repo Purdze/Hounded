@@ -30,18 +30,50 @@ public final class SettingsParser {
         Reader reader = new Reader(values);
         Settings defaults = Settings.DEFAULTS;
         Settings settings = new Settings(
-                reader.intAtLeast(ConfigKey.HEADSTART_DEFAULT_SECONDS, 0, defaults.defaultHeadstartSeconds()),
-                reader.enumValue(ConfigKey.COMPASS_UPDATE_MODE, defaults.compassUpdateMode()),
-                reader.intAtLeast(ConfigKey.COMPASS_UPDATE_INTERVAL_TICKS, 1, defaults.compassUpdateIntervalTicks()),
-                reader.bool(
-                        ConfigKey.COMPASS_DISABLE_IN_NETHER_FOR_HUNTERS, defaults.disableCompassInNetherForHunters()),
-                reader.bool(ConfigKey.RULES_FREEZE_WHEN_LOOKED_AT, defaults.freezeWhenLookedAt()),
-                reader.bool(ConfigKey.RULES_RUNNER_CAN_ATTACK_HUNTERS, defaults.runnerCanAttackHunters()),
-                reader.bool(ConfigKey.RULES_FRIENDLY_FIRE, defaults.friendlyFire()),
-                reader.bool(ConfigKey.RULES_ELIMINATED_RUNNERS_SPECTATE, defaults.eliminatedRunnersSpectate()),
-                reader.intAtLeast(ConfigKey.RULES_RUNNER_REJOIN_GRACE_SECONDS, 0, defaults.runnerRejoinGraceSeconds()),
-                reader.enumValue(ConfigKey.DISPLAY_MODE, defaults.displayMode()),
-                reader.bool(ConfigKey.DISPLAY_SHOW_DISTANCE, defaults.showDistance()),
+                new Settings.Headstart(
+                        reader.intAtLeast(
+                                ConfigKey.HEADSTART_DEFAULT_SECONDS,
+                                0,
+                                defaults.headstart().defaultSeconds()),
+                        reader.bool(
+                                ConfigKey.HEADSTART_FREEZE_HUNTERS,
+                                defaults.headstart().freezeHunters()),
+                        reader.bool(
+                                ConfigKey.HEADSTART_BLIND_HUNTERS,
+                                defaults.headstart().blindHunters())),
+                new Settings.Compass(
+                        reader.enumValue(
+                                ConfigKey.COMPASS_UPDATE_MODE,
+                                defaults.compass().updateMode()),
+                        reader.intAtLeast(
+                                ConfigKey.COMPASS_UPDATE_INTERVAL_TICKS,
+                                1,
+                                defaults.compass().updateIntervalTicks()),
+                        reader.bool(
+                                ConfigKey.COMPASS_DISABLE_IN_NETHER_FOR_HUNTERS,
+                                defaults.compass().disableInNetherForHunters())),
+                new Settings.Rules(
+                        reader.bool(
+                                ConfigKey.RULES_FREEZE_WHEN_LOOKED_AT,
+                                defaults.rules().freezeWhenLookedAt()),
+                        reader.bool(
+                                ConfigKey.RULES_RUNNER_CAN_ATTACK_HUNTERS,
+                                defaults.rules().runnerCanAttackHunters()),
+                        reader.bool(
+                                ConfigKey.RULES_FRIENDLY_FIRE, defaults.rules().friendlyFire()),
+                        reader.bool(
+                                ConfigKey.RULES_ELIMINATED_RUNNERS_SPECTATE,
+                                defaults.rules().eliminatedRunnersSpectate()),
+                        reader.intAtLeast(
+                                ConfigKey.RULES_RUNNER_REJOIN_GRACE_SECONDS,
+                                0,
+                                defaults.rules().runnerRejoinGraceSeconds())),
+                new Settings.Display(
+                        reader.enumValue(
+                                ConfigKey.DISPLAY_MODE, defaults.display().mode()),
+                        reader.bool(
+                                ConfigKey.DISPLAY_SHOW_DISTANCE,
+                                defaults.display().showDistance())),
                 reader.bool(ConfigKey.QUICK_START_GUIDE, defaults.showQuickStartGuide()));
         return new Result(settings, reader.warnings);
     }

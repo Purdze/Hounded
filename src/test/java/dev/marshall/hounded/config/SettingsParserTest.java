@@ -13,6 +13,8 @@ class SettingsParserTest {
     private static Map<String, Object> validValues() {
         Map<String, Object> values = new HashMap<>();
         values.put(ConfigKey.HEADSTART_DEFAULT_SECONDS.path(), 45);
+        values.put(ConfigKey.HEADSTART_FREEZE_HUNTERS.path(), false);
+        values.put(ConfigKey.HEADSTART_BLIND_HUNTERS.path(), false);
         values.put(ConfigKey.COMPASS_UPDATE_MODE.path(), "manual");
         values.put(ConfigKey.COMPASS_UPDATE_INTERVAL_TICKS.path(), 10);
         values.put(ConfigKey.COMPASS_DISABLE_IN_NETHER_FOR_HUNTERS.path(), true);
@@ -33,17 +35,10 @@ class SettingsParserTest {
 
         assertEquals(
                 new Settings(
-                        45,
-                        CompassUpdateMode.MANUAL,
-                        10,
-                        true,
-                        true,
-                        false,
-                        true,
-                        false,
-                        60,
-                        DisplayMode.SCOREBOARD,
-                        false,
+                        new Settings.Headstart(45, false, false),
+                        new Settings.Compass(CompassUpdateMode.MANUAL, 10, true),
+                        new Settings.Rules(true, false, true, false, 60),
+                        new Settings.Display(DisplayMode.SCOREBOARD, false),
                         false),
                 result.settings());
         assertTrue(result.warnings().isEmpty(), () -> result.warnings().toString());
@@ -62,22 +57,24 @@ class SettingsParserTest {
         Map<String, Object> values = validValues();
         values.put(ConfigKey.COMPASS_UPDATE_INTERVAL_TICKS.path(), 0);
         values.put(ConfigKey.HEADSTART_DEFAULT_SECONDS.path(), "soon");
+        values.put(ConfigKey.HEADSTART_BLIND_HUNTERS.path(), "maybe");
         values.put(ConfigKey.DISPLAY_MODE.path(), "hologram");
         values.put(ConfigKey.RULES_FRIENDLY_FIRE.path(), "yes please");
         values.put(ConfigKey.RULES_RUNNER_REJOIN_GRACE_SECONDS.path(), -1);
 
         SettingsParser.Result result = parser.parse(values);
+        Settings settings = result.settings();
+        Settings defaults = Settings.DEFAULTS;
 
         assertEquals(
-                Settings.DEFAULTS.compassUpdateIntervalTicks(),
-                result.settings().compassUpdateIntervalTicks());
+                defaults.compass().updateIntervalTicks(), settings.compass().updateIntervalTicks());
+        assertEquals(defaults.headstart().defaultSeconds(), settings.headstart().defaultSeconds());
+        assertEquals(defaults.headstart().blindHunters(), settings.headstart().blindHunters());
+        assertEquals(defaults.display().mode(), settings.display().mode());
+        assertEquals(defaults.rules().friendlyFire(), settings.rules().friendlyFire());
         assertEquals(
-                Settings.DEFAULTS.defaultHeadstartSeconds(), result.settings().defaultHeadstartSeconds());
-        assertEquals(Settings.DEFAULTS.displayMode(), result.settings().displayMode());
-        assertEquals(Settings.DEFAULTS.friendlyFire(), result.settings().friendlyFire());
-        assertEquals(
-                Settings.DEFAULTS.runnerRejoinGraceSeconds(), result.settings().runnerRejoinGraceSeconds());
-        assertEquals(5, result.warnings().size());
+                defaults.rules().runnerRejoinGraceSeconds(), settings.rules().runnerRejoinGraceSeconds());
+        assertEquals(6, result.warnings().size());
         assertTrue(result.warnings().stream().anyMatch(w -> w.contains(ConfigKey.DISPLAY_MODE.path())));
     }
 
@@ -85,6 +82,6 @@ class SettingsParserTest {
     void zeroHeadstartIsAllowed() {
         Map<String, Object> values = validValues();
         values.put(ConfigKey.HEADSTART_DEFAULT_SECONDS.path(), 0);
-        assertEquals(0, parser.parse(values).settings().defaultHeadstartSeconds());
+        assertEquals(0, parser.parse(values).settings().headstart().defaultSeconds());
     }
 }

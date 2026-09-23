@@ -40,6 +40,7 @@ role:
 start:
   headstart: "<green>The hunt begins!</green> <gray>Runners have</gray> <white><seconds></white> <gray>seconds of headstart.</gray>"
   released: "<red><bold>The hunters have been released!</bold></red>"
+  frozen: "<gray>You're frozen until the hunters are released.</gray>"
   no-runners: '<red>Add at least one runner first: /hounded runner add \<player></red>'
   no-hunters: '<red>Add at least one hunter first: /hounded hunter add \<player></red>'
   already-running: "<red>A round is already running. Use /hounded stop to end it.</red>"

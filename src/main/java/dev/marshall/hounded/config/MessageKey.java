@@ -20,6 +20,7 @@ public enum MessageKey {
     ROLE_LOCKED("role.locked"),
     START_HEADSTART("start.headstart"),
     START_RELEASED("start.released"),
+    START_FROZEN("start.frozen"),
     START_NO_RUNNERS("start.no-runners"),
     START_NO_HUNTERS("start.no-hunters"),
     START_ALREADY_RUNNING("start.already-running"),

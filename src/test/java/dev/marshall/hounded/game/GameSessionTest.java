@@ -122,6 +122,26 @@ class GameSessionTest {
     }
 
     @Nested
+    class HeadstartHold {
+        @Test
+        void onlyHuntersAreHeldAndOnlyDuringTheHeadstart() {
+            assignOneRunnerAndHunter();
+            assertFalse(session.isHeldInHeadstart(hunter));
+
+            session.start(10);
+            assertTrue(session.isHeldInHeadstart(hunter));
+            assertFalse(session.isHeldInHeadstart(runner));
+
+            clock.advance(Duration.ofSeconds(10));
+            session.tick();
+            assertFalse(session.isHeldInHeadstart(hunter));
+
+            session.stop();
+            assertFalse(session.isHeldInHeadstart(hunter));
+        }
+    }
+
+    @Nested
     class WinConditions {
         @Test
         void dragonKillMeansRunnersWin() {

@@ -27,7 +27,7 @@ All commands except `help` need `hounded.admin`. `add` and `remove` take an onli
 
 ## How a round works
 1. Add at least one runner and one hunter.
-2. `/hounded start 30` gives runners 30 seconds, then the hunters are released.
+2. `/hounded start 30` gives runners 30 seconds, then the hunters are released. During the headstart, hunters are frozen: they can look around but can't move, mine, build, attack, use items or be hurt. They're blind too (both configurable).
 3. Runners win when the ender dragon dies. Hunters win when every runner is out.
    - A runner who dies is out, and watches in spectator mode until the round ends (configurable).
    - A runner who leaves the server has 5 minutes (configurable) to come back, or they're out too.
@@ -45,6 +45,8 @@ Roles can't be changed during a round. Use `/hounded stop` first.
 | Key | Default | Meaning |
 |---|---|---|
 | `headstart.default-seconds` | `30` | Headstart when `/hounded start` has no number. `0` = none. |
+| `headstart.freeze-hunters` | `true` | Hunters can't move, mine, build, attack, use or drop items, or be hurt until released. |
+| `headstart.blind-hunters` | `true` | Hunters are blind until released. |
 | `compass.update-mode` | `auto` | `auto` updates on a timer; `manual` updates on right-click. |
 | `compass.update-interval-ticks` | `20` | Auto-update interval (20 ticks = 1 s). Minimum 1. |
 | `compass.disable-in-nether-for-hunters` | `false` | Turn off tracking while a hunter is in the Nether. |

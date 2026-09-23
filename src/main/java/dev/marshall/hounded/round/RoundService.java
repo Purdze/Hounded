@@ -19,22 +19,22 @@ import org.bukkit.scheduler.BukkitTask;
 
 /**
  * Turns {@link GameSession} results into server effects: broadcasts, the round timer, spectator
- * mode for eliminated runners and the reset after a round ends. Commands and listeners go through
+ * mode for eliminated runners, holding hunters during the headstart and the reset after a round ends. Commands and listeners go through
  * here so they stay thin. Main thread only.
  */
 public final class RoundService {
-    private static final long TICKS_PER_SECOND = 20L;
-
     private final Plugin plugin;
     private final GameSession session;
     private final ConfigService configService;
+    private final HeadstartHold headstartHold;
     private final SpectatorSwitcher spectators;
     private BukkitTask roundTask;
 
-    public RoundService(Plugin plugin, GameSession session, ConfigService configService) {
+    public RoundService(Plugin plugin, GameSession session, ConfigService configService, HeadstartHold headstartHold) {
         this.plugin = Objects.requireNonNull(plugin, "plugin");
         this.session = Objects.requireNonNull(session, "session");
         this.configService = Objects.requireNonNull(configService, "configService");
+        this.headstartHold = Objects.requireNonNull(headstartHold, "headstartHold");
         this.spectators = new SpectatorSwitcher(plugin.getServer());
     }
 
@@ -43,12 +43,13 @@ public final class RoundService {
         if (result instanceof TransitionResult.Changed changed) {
             if (changed.to() == GameState.HEADSTART) {
                 broadcast(MessageKey.START_HEADSTART, seconds(headstartSeconds));
+                headstartHold.holdOnlineHunters();
             } else {
                 broadcast(MessageKey.START_RELEASED);
             }
             roundTask = plugin.getServer()
                     .getScheduler()
-                    .runTaskTimer(plugin, this::tickRound, TICKS_PER_SECOND, TICKS_PER_SECOND);
+                    .runTaskTimer(plugin, this::tickRound, Ticks.PER_SECOND, Ticks.PER_SECOND);
         }
         return result;
     }
@@ -70,7 +71,7 @@ public final class RoundService {
     }
 
     public void playerLeft(UUID player) {
-        int graceSeconds = configService.settings().runnerRejoinGraceSeconds();
+        int graceSeconds = configService.settings().rules().runnerRejoinGraceSeconds();
         TransitionResult result = session.recordRunnerLeft(player, Duration.ofSeconds(graceSeconds));
         // With no grace, the timeout message on the next tick says it all.
         if (result instanceof TransitionResult.Unchanged && graceSeconds > 0) {
@@ -80,6 +81,7 @@ public final class RoundService {
 
     public void playerJoined(Player player) {
         spectators.restoreIfPending(player);
+        headstartHold.hold(player);
         if (session.recordRunnerReturned(player.getUniqueId()) instanceof TransitionResult.Unchanged) {
             broadcast(MessageKey.ROUND_RUNNER_RETURNED, playerName(player.getUniqueId()));
         }
@@ -92,11 +94,13 @@ public final class RoundService {
 
     public void shutdown() {
         cancelRoundTask();
+        headstartHold.releaseAll();
         spectators.restoreAll();
     }
 
     private void tickRound() {
         if (session.tick() instanceof TransitionResult.Changed) {
+            headstartHold.releaseAll();
             broadcast(MessageKey.START_RELEASED);
         }
         for (UUID runner : session.runnersPastRejoinDeadline()) {
@@ -107,7 +111,7 @@ public final class RoundService {
 
     private void spectateIfEliminated(Player player) {
         if (session.isEliminated(player.getUniqueId())
-                && configService.settings().eliminatedRunnersSpectate()) {
+                && configService.settings().rules().eliminatedRunnersSpectate()) {
             spectators.makeSpectator(player);
         }
     }
@@ -115,6 +119,7 @@ public final class RoundService {
     private TransitionResult finishIfEnded(TransitionResult result) {
         if (session.state() == GameState.ENDED) {
             cancelRoundTask();
+            headstartHold.releaseAll();
             announce(session.outcome().orElseThrow());
             spectators.restoreAll();
             session.reset();

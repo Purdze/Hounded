@@ -4,6 +4,11 @@ headstart:
   # Seconds runners get before hunters are released, when /hounded start is run without a number.
   # 0 = no headstart.
   default-seconds: 30
+  # Hunters can't move, break or place blocks, attack, use or drop items, or be hurt until they are
+  # released. They can still look around.
+  freeze-hunters: true
+  # Hunters are blind until they are released, so they can't watch where the runners go.
+  blind-hunters: true
 
 compass:
   # auto   = compasses update on their own every update-interval-ticks.

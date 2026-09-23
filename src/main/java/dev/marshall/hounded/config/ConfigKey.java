@@ -3,6 +3,8 @@ package dev.marshall.hounded.config;
 /** Paths in {@code config.yml}. */
 public enum ConfigKey {
     HEADSTART_DEFAULT_SECONDS("headstart.default-seconds"),
+    HEADSTART_FREEZE_HUNTERS("headstart.freeze-hunters"),
+    HEADSTART_BLIND_HUNTERS("headstart.blind-hunters"),
     COMPASS_UPDATE_MODE("compass.update-mode"),
     COMPASS_UPDATE_INTERVAL_TICKS("compass.update-interval-ticks"),
     COMPASS_DISABLE_IN_NETHER_FOR_HUNTERS("compass.disable-in-nether-for-hunters"),

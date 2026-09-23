@@ -24,8 +24,9 @@ final class RoundCommands {
 
     LiteralArgumentBuilder<CommandSourceStack> start() {
         return Commands.literal("start")
-                .executes(context ->
-                        start(context.getSource(), configService.settings().defaultHeadstartSeconds()))
+                .executes(context -> start(
+                        context.getSource(),
+                        configService.settings().headstart().defaultSeconds()))
                 .then(Commands.argument(SECONDS_ARGUMENT, IntegerArgumentType.integer(0))
                         .executes(context ->
                                 start(context.getSource(), IntegerArgumentType.getInteger(context, SECONDS_ARGUMENT))));

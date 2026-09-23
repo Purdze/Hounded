@@ -173,6 +173,12 @@ public final class GameSession {
                 .toList();
     }
 
+    /** Hunters wait during the headstart; the plugin decides what "waiting" means. */
+    public boolean isHeldInHeadstart(UUID player) {
+        return state == GameState.HEADSTART
+                && roster.roleOf(player).filter(Role.HUNTER::equals).isPresent();
+    }
+
     public boolean isEliminated(UUID player) {
         return eliminatedRunners.contains(player);
     }

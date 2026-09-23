@@ -17,9 +17,9 @@ import dev.marshall.hounded.testing.PluginFixture;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
-import java.util.UUID;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.GameMode;
+import org.bukkit.potion.PotionEffectType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,15 +35,21 @@ class RoundServiceTest {
     private RoundService roundService;
     private PlayerMock watcher;
     private PlayerMock runner;
+    private PlayerMock hunter;
 
     @BeforeEach
     void setUp() throws ConfigLoadException {
         fixture = PluginFixture.start();
-        roundService = new RoundService(fixture.plugin(), session, fixture.config());
+        roundService = new RoundService(
+                fixture.plugin(),
+                session,
+                fixture.config(),
+                new HeadstartHold(session, fixture.config(), fixture.server()));
         watcher = fixture.server().addPlayer("Watcher");
         runner = fixture.server().addPlayer("Runner");
         session.assignRole(runner.getUniqueId(), Role.RUNNER);
-        session.assignRole(UUID.randomUUID(), Role.HUNTER);
+        hunter = fixture.server().addPlayer("Hunter");
+        session.assignRole(hunter.getUniqueId(), Role.HUNTER);
     }
 
     @AfterEach
@@ -64,7 +70,7 @@ class RoundServiceTest {
     }
 
     private int graceSeconds() {
-        return fixture.config().settings().runnerRejoinGraceSeconds();
+        return fixture.config().settings().rules().runnerRejoinGraceSeconds();
     }
 
     @Test
@@ -233,5 +239,52 @@ class RoundServiceTest {
 
         assertEquals(GameMode.SPECTATOR, runner.getGameMode());
         assertEquals(List.of(), messagesOf(watcher));
+    }
+
+    @Test
+    void huntersAreToldTheyAreFrozenAndBlindedDuringTheHeadstart() {
+        roundService.start(10);
+
+        assertTrue(messagesOf(hunter).contains(fixture.chat(MessageKey.START_FROZEN)));
+        assertTrue(hunter.hasPotionEffect(PotionEffectType.BLINDNESS));
+        assertFalse(runner.hasPotionEffect(PotionEffectType.BLINDNESS));
+    }
+
+    @Test
+    void blindnessIsLiftedWhenHuntersAreReleased() {
+        roundService.start(10);
+
+        passTime(Duration.ofSeconds(10));
+
+        assertFalse(hunter.hasPotionEffect(PotionEffectType.BLINDNESS));
+    }
+
+    @Test
+    void blindnessIsLiftedWhenTheRoundIsStopped() {
+        roundService.start(10);
+
+        roundService.stop();
+
+        assertFalse(hunter.hasPotionEffect(PotionEffectType.BLINDNESS));
+    }
+
+    @Test
+    void hunterJoiningDuringTheHeadstartIsHeldToo() {
+        hunter.disconnect();
+        roundService.start(10);
+
+        hunter.reconnect();
+        roundService.playerJoined(hunter);
+
+        assertTrue(hunter.hasPotionEffect(PotionEffectType.BLINDNESS));
+    }
+
+    @Test
+    void noBlindnessWhenTurnedOff() throws IOException {
+        fixture.setConfig(ConfigKey.HEADSTART_BLIND_HUNTERS, false);
+
+        roundService.start(10);
+
+        assertFalse(hunter.hasPotionEffect(PotionEffectType.BLINDNESS));
     }
 }

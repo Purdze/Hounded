@@ -5,7 +5,9 @@ import dev.marshall.hounded.config.ConfigLoadException;
 import dev.marshall.hounded.config.ConfigLoader;
 import dev.marshall.hounded.config.ConfigService;
 import dev.marshall.hounded.game.GameSession;
+import dev.marshall.hounded.listener.HeadstartListener;
 import dev.marshall.hounded.listener.RoundListener;
+import dev.marshall.hounded.round.HeadstartHold;
 import dev.marshall.hounded.round.RoundService;
 import dev.marshall.hounded.tracking.CompassItem;
 import dev.marshall.hounded.tracking.TargetResolver;
@@ -35,11 +37,13 @@ public class HoundedPlugin extends JavaPlugin {
         }
 
         GameSession session = new GameSession(Clock.systemUTC());
-        roundService = new RoundService(this, session, configService);
+        HeadstartHold headstartHold = new HeadstartHold(session, configService, getServer());
+        roundService = new RoundService(this, session, configService, headstartHold);
         trackingService = new TrackingService(session, new TargetResolver(), new CompassItem(this));
         trackingService.start();
 
         getServer().getPluginManager().registerEvents(new RoundListener(roundService), this);
+        getServer().getPluginManager().registerEvents(new HeadstartListener(headstartHold), this);
         HoundedCommand command = new HoundedCommand(session, roundService, configService, getServer());
         getLifecycleManager()
                 .registerEventHandler(
