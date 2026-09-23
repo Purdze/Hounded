@@ -1,6 +1,7 @@
 plugins {
     java
     id("com.diffplug.spotless") version "8.10.2"
+    id("xyz.jpenilla.run-paper") version "3.1.0"
 }
 
 group = "dev.marshall"
@@ -8,7 +9,8 @@ version = "0.1.0-SNAPSHOT"
 description = "Hounded – Manhunt: speedrunners vs hunters for Paper"
 
 val paperApiVersion = "26.2.build.129-stable"
-val junitVersion = "5.14.4"
+val junitVersion = "6.1.3"
+val mockBukkitVersion = "4.116.1"
 val palantirJavaFormatVersion = "2.99.0"
 
 repositories {
@@ -21,8 +23,8 @@ repositories {
 dependencies {
     compileOnly("io.papermc.paper:paper-api:$paperApiVersion")
 
-    // Only so tests can check the bundled YAML files and MiniMessage templates.
     testImplementation("io.papermc.paper:paper-api:$paperApiVersion")
+    testImplementation("org.mockbukkit.mockbukkit:mockbukkit-v26.2:$mockBukkitVersion")
     testImplementation(platform("org.junit:junit-bom:$junitVersion"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
@@ -50,12 +52,11 @@ tasks.processResources {
     }
 }
 
-// Copies the plugin into the local test server.
-tasks.register<Copy>("deployToTestServer") {
-    from(tasks.jar)
-    into(layout.projectDirectory.dir("test-server/plugins"))
-    // A fixed name, so each deploy replaces the previous jar instead of piling up versions.
-    rename { "Hounded.jar" }
+tasks.runServer {
+    minecraftVersion("26.2")
+    runDirectory = layout.projectDirectory.dir("test-server")
+    // The owner accepted the Minecraft EULA on 2026-09-23.
+    jvmArgs("-Dcom.mojang.eula.agree=true")
 }
 
 spotless {

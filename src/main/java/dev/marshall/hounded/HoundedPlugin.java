@@ -17,7 +17,8 @@ import java.util.logging.Level;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /** Bootstrap only: wires services together on enable and tears them down on disable. */
-public final class HoundedPlugin extends JavaPlugin {
+// Not final: MockBukkit subclasses the main class in tests.
+public class HoundedPlugin extends JavaPlugin {
     // Null until onEnable succeeds; onDisable also runs after a failed enable.
     private RoundService roundService;
     private TrackingService trackingService;

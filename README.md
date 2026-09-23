@@ -65,11 +65,13 @@ Every player-facing text is in `messages.yml`, in [MiniMessage](https://docs.adv
 Needs a JDK 25 that Gradle can find (Gradle itself can run on 21+). The jar goes to `build/libs/`. Formatting is enforced: run `./gradlew spotlessApply` if the build complains.
 
 ## Local test server
-`test-server/` is a local Paper 26.2 server for development and isn't committed. To set one up, download the Paper 26.2 jar from papermc.io as `test-server/paper.jar`, accept the EULA in `test-server/eula.txt`, and add a start script that runs it with Java 25.
 ```
-./gradlew deployToTestServer   # builds and copies the plugin to test-server/plugins/Hounded.jar
-test-server\start.bat          # your local start script
+./gradlew runServer
 ```
+Builds the plugin and starts a Paper 26.2 server in `test-server/` with it loaded (via [run-paper](https://github.com/jpenilla/run-task)). Type server commands in the same terminal and `stop` to shut down. Starting it accepts the Minecraft EULA (see `build.gradle.kts`). `test-server/` isn't committed.
+
+## Tests
+`./gradlew test` runs plain unit tests for the game logic, plus [MockBukkit](https://github.com/MockBukkit/MockBukkit) tests that load the plugin on a simulated server and drive commands, deaths and the headstart timer.
 
 ## License
 TBD.
