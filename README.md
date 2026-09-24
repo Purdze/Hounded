@@ -1,4 +1,4 @@
-# Hounded – Manhunt
+# Hounded - Manhunt
 
 A manhunt game mode for Paper: one or more speedrunners try to beat the game while hunters track them with a compass that works in every dimension.
 

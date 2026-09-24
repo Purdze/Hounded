@@ -12,5 +12,5 @@ permissions:
     description: Use all /hounded admin commands.
     default: op
   hounded.compass:
-    description: Use the tracking compass.
+    description: Get a replacement tracking compass with /hounded compass.
     default: true
