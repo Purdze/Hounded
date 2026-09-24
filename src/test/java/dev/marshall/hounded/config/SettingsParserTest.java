@@ -3,6 +3,7 @@ package dev.marshall.hounded.config;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import dev.marshall.hounded.game.GameSession;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -76,6 +77,19 @@ class SettingsParserTest {
                 defaults.rules().runnerRejoinGraceSeconds(), settings.rules().runnerRejoinGraceSeconds());
         assertEquals(6, result.warnings().size());
         assertTrue(result.warnings().stream().anyMatch(w -> w.contains(ConfigKey.DISPLAY_MODE.path())));
+    }
+
+    @Test
+    void headstartLongerThanTheMaximumFallsBackToTheDefault() {
+        Map<String, Object> values = validValues();
+        values.put(ConfigKey.HEADSTART_DEFAULT_SECONDS.path(), GameSession.MAX_HEADSTART_SECONDS + 1);
+
+        SettingsParser.Result result = parser.parse(values);
+
+        assertEquals(
+                Settings.DEFAULTS.headstart().defaultSeconds(),
+                result.settings().headstart().defaultSeconds());
+        assertEquals(1, result.warnings().size());
     }
 
     @Test

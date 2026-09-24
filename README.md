@@ -22,7 +22,7 @@ All commands except `help` and `compass` need `hounded.admin`.
 | `/hounded runner list\|clear` | List all runners, or remove them all |
 | `/hounded hunter add\|remove <player>` | Same for hunters |
 | `/hounded hunter list\|clear` | Same for hunters |
-| `/hounded start [seconds]` | Start a round with an optional headstart (0 = none) |
+| `/hounded start [seconds]` | Start a round with an optional headstart (0 = none, at most 3600) |
 | `/hounded stop` | Stop the current round |
 | `/hounded compass` | Get your tracking compass back (hunters in a round, `hounded.compass`) |
 | `/hounded reload` | Reload `config.yml` and `messages.yml` |
@@ -33,7 +33,9 @@ Until the first round is started, admins get a short "how to start" guide in cha
 
 ## How a round works
 1. Add at least one runner and one hunter.
-2. `/hounded start 30` gives runners 30 seconds, then the hunters are released. During the headstart, hunters are frozen: they can look around but can't move, mine, build, attack, use items or be hurt. They're blind too (both configurable).
+2. `/hounded start 30` gives runners 30 seconds, then the hunters are released. During the headstart, hunters are frozen: they can look around but can't move, mine, build, attack, use items, ride or be hurt. They're blind too (both configurable).
+   - A hunter who is riding when the headstart begins is put on foot.
+   - A frozen hunter can't be teleported by commands or other plugins, unless they have `hounded.admin`. An admin can still teleport themselves, but not other hunters: stop the round first, or wait for the release.
 3. Runners win when the ender dragon dies. Hunters win when every runner is out.
    - A runner who dies is out, and watches in spectator mode until the round ends (configurable).
    - A runner who leaves the server has 5 minutes (configurable) to come back, or they're out too.
@@ -66,15 +68,15 @@ Distances are horizontal blocks, like the X/Z on F3. The display is hidden outsi
 ## Configuration (`config.yml`)
 | Key | Default | Meaning |
 |---|---|---|
-| `headstart.default-seconds` | `30` | Headstart when `/hounded start` has no number. `0` = none. |
-| `headstart.freeze-hunters` | `true` | Hunters can't move, mine, build, attack, use or drop items, or be hurt until released. |
+| `headstart.default-seconds` | `30` | Headstart when `/hounded start` has no number. `0` = none, at most `3600` (1 hour). |
+| `headstart.freeze-hunters` | `true` | Hunters can't move, mine, build, attack, use or drop items, ride, be teleported or be hurt until released. |
 | `headstart.blind-hunters` | `true` | Hunters are blind until released. |
 | `compass.update-mode` | `auto` | `auto` updates on a timer; `manual` updates on right-click. |
 | `compass.update-interval-ticks` | `20` | Auto-update interval (20 ticks = 1 s). Minimum 1. |
 | `compass.disable-in-nether-for-hunters` | `false` | Turn off tracking while a hunter is in the Nether. |
-| `rules.freeze-when-looked-at` | `false` | While hunting, a hunter can't walk while a runner is looking at them (within about 15° of the crosshair, clear view, up to 64 blocks). They can still look around, attack and use items. Nobody is hurt by it. |
-| `rules.runner-can-attack-hunters` | `true` | Runners may damage hunters, including with arrows and other projectiles. |
-| `rules.friendly-fire` | `false` | Players on the same side may damage each other, including with projectiles. |
+| `rules.freeze-when-looked-at` | `false` | While hunting, a hunter can't walk while a runner is looking at them (within about 15° of the crosshair, clear view, up to 64 blocks). They can still look around, attack and use items, but can't mount anything, and a rider is put on foot. Nobody is hurt by it. |
+| `rules.runner-can-attack-hunters` | `true` | Runners may damage hunters, including with arrows and other projectiles, and harmful splash or lingering potions. |
+| `rules.friendly-fire` | `false` | Players on the same side may damage each other, including with projectiles and harmful potions. Helpful potions always work. |
 | `rules.eliminated-runners-spectate` | `true` | Runners who are out watch in spectator mode until the round ends. |
 | `rules.runner-rejoin-grace-seconds` | `300` | Seconds a runner who leaves has to come back before they're out. `0` = out at once. |
 | `display.mode` | `bossbar` | `bossbar`, `scoreboard` or `none`. Switches live on `/hounded reload`. |
@@ -83,11 +85,13 @@ Distances are horizontal blocks, like the X/Z on F3. The display is hidden outsi
 
 Invalid values fall back to the default. The console says which key was wrong.
 
+The attack rules don't cover fire that keeps burning after a hit, explosions, lava or fire placed by a player, or tamed pets.
+
 ## Messages (`messages.yml`)
 Every player-facing text is in `messages.yml`, in [MiniMessage](https://docs.advntr.dev/minimessage/format.html) format, so you can recolour or translate it. Keys missing from your file fall back to the bundled English.
 
 ## Placeholders
-With PlaceholderAPI installed, these work anywhere PlaceholderAPI does. Values are plain text, and empty when they don't apply to the player.
+With PlaceholderAPI installed, these work anywhere PlaceholderAPI does. Values are plain text, and empty when they don't apply to the player. They're updated once a second.
 
 | Placeholder | Shows |
 |---|---|

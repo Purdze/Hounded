@@ -47,7 +47,7 @@ class PlaceholderResolverTest {
     }
 
     private String valueFor(PlayerMock player, String name) {
-        return placeholders.resolve(player, name).orElseThrow();
+        return placeholders.resolve(HoundedPlaceholder.byName(name).orElseThrow(), Optional.of(player));
     }
 
     @Test
@@ -104,16 +104,9 @@ class PlaceholderResolverTest {
     }
 
     @Test
-    void namesAreCaseInsensitiveAndUnknownNamesAreNotResolved() {
-        assertEquals(fixture.text(MessageKey.ROLE_NAME_HUNTER), valueFor(hunter, "ROLE"));
-        assertEquals(Optional.empty(), placeholders.resolve(hunter, "nonsense"));
-    }
-
-    @Test
     void worksWithoutAPlayer() {
-        assertEquals("", placeholders.resolve(null, "role").orElseThrow());
+        assertEquals("", placeholders.resolve(HoundedPlaceholder.ROLE, Optional.empty()));
         assertEquals(
-                fixture.text(MessageKey.STATE_LOBBY),
-                placeholders.resolve(null, "state").orElseThrow());
+                fixture.text(MessageKey.STATE_LOBBY), placeholders.resolve(HoundedPlaceholder.STATE, Optional.empty()));
     }
 }

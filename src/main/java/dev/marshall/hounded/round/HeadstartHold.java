@@ -47,6 +47,7 @@ public final class HeadstartHold {
         }
         Settings.Headstart settings = configService.settings().headstart();
         if (settings.freezeHunters()) {
+            player.leaveVehicle();
             player.sendMessage(configService.messages().chat(MessageKey.START_FROZEN));
         }
         if (settings.blindHunters()) {

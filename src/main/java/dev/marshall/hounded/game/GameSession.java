@@ -19,6 +19,9 @@ import java.util.function.Supplier;
  * returned {@link TransitionResult}. Not thread-safe: call from the main thread only.
  */
 public final class GameSession {
+    /** Longer headstarts are refused; also keeps durations far from any overflow. */
+    public static final int MAX_HEADSTART_SECONDS = 3600;
+
     private final Clock clock;
     private final Roster roster = new Roster();
     private final Set<UUID> eliminatedRunners = new HashSet<>();
@@ -102,6 +105,9 @@ public final class GameSession {
         }
         if (headstartSeconds < 0) {
             return Optional.of(RejectionReason.NEGATIVE_HEADSTART);
+        }
+        if (headstartSeconds > MAX_HEADSTART_SECONDS) {
+            return Optional.of(RejectionReason.HEADSTART_TOO_LONG);
         }
         if (!roster.hasAny(Role.RUNNER)) {
             return Optional.of(RejectionReason.NO_RUNNERS);

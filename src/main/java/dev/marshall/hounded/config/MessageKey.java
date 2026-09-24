@@ -25,6 +25,7 @@ public enum MessageKey {
     START_NO_HUNTERS("start.no-hunters"),
     START_ALREADY_RUNNING("start.already-running"),
     START_NEGATIVE_HEADSTART("start.negative-headstart"),
+    START_HEADSTART_TOO_LONG("start.headstart-too-long"),
     STOP_STOPPED("stop.stopped"),
     STOP_NOT_RUNNING("stop.not-running"),
     ROUND_RUNNER_ELIMINATED("round.runner-eliminated"),

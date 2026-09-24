@@ -5,18 +5,24 @@ import java.util.Optional;
 
 /** The placeholders Hounded offers, as {@code %hounded_<name>%}. */
 public enum HoundedPlaceholder {
-    ROLE("role"),
-    STATE("state"),
-    TIMER("timer"),
-    HEADSTART("headstart"),
-    DISTANCE("distance"),
-    TARGET("target"),
-    RUNNERS_LEFT("runners_left");
+    ROLE("role", true),
+    STATE("state", false),
+    TIMER("timer", false),
+    HEADSTART("headstart", false),
+    DISTANCE("distance", true),
+    TARGET("target", true),
+    RUNNERS_LEFT("runners_left", false);
 
     private final String placeholderName;
+    private final boolean perPlayer;
 
-    HoundedPlaceholder(String placeholderName) {
+    HoundedPlaceholder(String placeholderName, boolean perPlayer) {
         this.placeholderName = placeholderName;
+        this.perPlayer = perPlayer;
+    }
+
+    public boolean isPerPlayer() {
+        return perPlayer;
     }
 
     public static Optional<HoundedPlaceholder> byName(String name) {

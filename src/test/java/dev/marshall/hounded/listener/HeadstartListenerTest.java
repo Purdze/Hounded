@@ -1,6 +1,7 @@
 package dev.marshall.hounded.listener;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.marshall.hounded.config.ConfigKey;
@@ -13,13 +14,24 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.damage.DamageType;
+import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.Boat;
+import org.bukkit.entity.Pig;
+import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityMountEvent;
+import org.bukkit.event.player.PlayerInteractAtEntityEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
+import org.bukkit.event.vehicle.VehicleEnterEvent;
 import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.util.Vector;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,13 +45,16 @@ class HeadstartListenerTest {
 
     private PluginFixture fixture;
     private PlayerMock hunter;
+    private PlayerMock otherHunter;
     private PlayerMock runner;
 
     @BeforeEach
     void setUp() throws ConfigLoadException {
         fixture = PluginFixture.start();
         hunter = fixture.addAdmin("Hunter");
+        otherHunter = fixture.server().addPlayer("OtherHunter");
         runner = fixture.server().addPlayer("Runner");
+        hunter.performCommand("hounded hunter add OtherHunter");
         fixture.startRound(hunter, LONG_HEADSTART, runner);
     }
 
@@ -63,6 +78,16 @@ class HeadstartListenerTest {
     private static boolean walks(PlayerMock player) {
         double startX = player.getLocation().getX();
         return destinationOfWalk(player).getX() != startX;
+    }
+
+    private boolean isCancelled(Cancellable event) {
+        fixture.server().getPluginManager().callEvent((Event) event);
+        return event.isCancelled();
+    }
+
+    private boolean teleportIsCancelled(PlayerMock player, TeleportCause cause) {
+        Location away = player.getLocation().add(100, 0, 0);
+        return isCancelled(new PlayerTeleportEvent(player, player.getLocation(), away, cause));
     }
 
     private static DamageSource genericDamage() {
@@ -126,6 +151,50 @@ class HeadstartListenerTest {
 
         assertTrue(event.isCancelled());
         assertEquals(health, runner.getHealth());
+    }
+
+    @Test
+    void hunterCannotUseOrMountEntities() {
+        Pig pig = hunter.getWorld().spawn(hunter.getLocation(), Pig.class);
+        ArmorStand stand = hunter.getWorld().spawn(hunter.getLocation(), ArmorStand.class);
+        Boat boat = hunter.getWorld().spawn(hunter.getLocation(), Boat.class);
+
+        assertTrue(isCancelled(new PlayerInteractEntityEvent(otherHunter, pig)));
+        assertTrue(isCancelled(new PlayerInteractAtEntityEvent(otherHunter, stand, new Vector())));
+        assertTrue(isCancelled(new EntityMountEvent(otherHunter, pig)));
+        assertTrue(isCancelled(new VehicleEnterEvent(boat, otherHunter)));
+        assertFalse(isCancelled(new EntityMountEvent(runner, pig)));
+        assertFalse(isCancelled(new VehicleEnterEvent(boat, runner)));
+    }
+
+    @Test
+    void hunterRidingWhenTheHeadstartStartsIsPutOnFoot() {
+        hunter.performCommand("hounded stop");
+        Pig pig = otherHunter.getWorld().spawn(otherHunter.getLocation(), Pig.class);
+        pig.addPassenger(otherHunter);
+
+        hunter.performCommand("hounded start " + LONG_HEADSTART);
+
+        assertFalse(otherHunter.isInsideVehicle());
+    }
+
+    @Test
+    void frozenHunterCannotBeTeleportedAwayUnlessAnAdmin() {
+        assertTrue(teleportIsCancelled(otherHunter, TeleportCause.COMMAND));
+        assertTrue(teleportIsCancelled(otherHunter, TeleportCause.PLUGIN));
+        assertTrue(teleportIsCancelled(otherHunter, TeleportCause.ENDER_PEARL));
+        assertFalse(teleportIsCancelled(otherHunter, TeleportCause.DISMOUNT));
+        assertFalse(teleportIsCancelled(hunter, TeleportCause.COMMAND));
+        assertFalse(teleportIsCancelled(runner, TeleportCause.COMMAND));
+    }
+
+    @Test
+    void nothingIsBlockedOnceTheHeadstartIsOver() {
+        hunter.performCommand("hounded stop");
+        Pig pig = otherHunter.getWorld().spawn(otherHunter.getLocation(), Pig.class);
+
+        assertFalse(teleportIsCancelled(otherHunter, TeleportCause.COMMAND));
+        assertFalse(isCancelled(new EntityMountEvent(otherHunter, pig)));
     }
 
     @Test

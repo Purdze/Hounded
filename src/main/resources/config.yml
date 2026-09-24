@@ -2,10 +2,10 @@
 
 headstart:
   # Seconds runners get before hunters are released, when /hounded start is run without a number.
-  # 0 = no headstart.
+  # 0 = no headstart. At most 3600 (1 hour).
   default-seconds: 30
-  # Hunters can't move, break or place blocks, attack, use or drop items, or be hurt until they are
-  # released. They can still look around.
+  # Hunters can't move, break or place blocks, attack, use or drop items, ride, be teleported (unless
+  # they have hounded.admin) or be hurt until they are released. They can still look around.
   freeze-hunters: true
   # Hunters are blind until they are released, so they can't watch where the runners go.
   blind-hunters: true
@@ -21,11 +21,13 @@ compass:
 
 rules:
   # While hunting, a hunter can't walk while a runner is looking at them (crosshair within about 15
-  # degrees, clear view, up to 64 blocks). They can still look around and attack. Nobody dies from it.
+  # degrees, clear view, up to 64 blocks). They can still look around and attack, but can't ride.
+  # Nobody dies from it.
   freeze-when-looked-at: false
-  # Whether runners can damage hunters, including with arrows and other projectiles.
+  # Whether runners can damage hunters, including with projectiles and harmful potions.
   runner-can-attack-hunters: true
-  # Whether players on the same side can damage each other, including with projectiles.
+  # Whether players on the same side can damage each other, including with projectiles and harmful
+  # potions. Helpful potions always work.
   friendly-fire: false
   # Runners who are out (died, or didn't come back in time) watch in spectator mode until the round
   # ends. If false, they keep playing but no longer count for the win.

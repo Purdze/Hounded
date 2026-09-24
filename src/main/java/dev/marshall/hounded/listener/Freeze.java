@@ -2,18 +2,26 @@ package dev.marshall.hounded.listener;
 
 import java.util.function.Predicate;
 import org.bukkit.Location;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Cancellable;
 import org.bukkit.event.player.PlayerMoveEvent;
 
-/** Stops a player walking while still letting them look around. */
-final class PositionLock {
+/** Shared by the headstart freeze and the looked-at freeze: {@code frozen} says who is held. */
+final class Freeze {
 
-    private PositionLock() {}
+    private Freeze() {}
 
-    /** Undoes a change of position if {@code frozen} says the player may not move. */
-    static void holdIfFrozen(PlayerMoveEvent event, Predicate<Player> frozen) {
+    /** Undoes a change of position if the player may not move. */
+    static void holdPositionIfFrozen(PlayerMoveEvent event, Predicate<Player> frozen) {
         if (event.hasChangedPosition() && frozen.test(event.getPlayer())) {
             holdPosition(event);
+        }
+    }
+
+    static void cancelIfFrozen(Cancellable event, Entity actor, Predicate<Player> frozen) {
+        if (actor instanceof Player player && frozen.test(player)) {
+            event.setCancelled(true);
         }
     }
 

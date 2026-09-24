@@ -46,6 +46,7 @@ start:
   no-hunters: '<red>Add at least one hunter first: /hounded hunter add \<player></red>'
   already-running: "<red>A round is already running. Use /hounded stop to end it.</red>"
   negative-headstart: "<red>The headstart must be 0 or more seconds.</red>"
+  headstart-too-long: "<red>The headstart can be at most</red> <white><seconds></white> <red>seconds.</red>"
 
 stop:
   stopped: "<yellow>The round was stopped.</yellow>"

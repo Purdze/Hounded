@@ -24,6 +24,7 @@ final class RejectionMessages {
             case NO_RUNNERS -> MessageKey.START_NO_RUNNERS;
             case NO_HUNTERS -> MessageKey.START_NO_HUNTERS;
             case NEGATIVE_HEADSTART -> MessageKey.START_NEGATIVE_HEADSTART;
+            case HEADSTART_TOO_LONG -> MessageKey.START_HEADSTART_TOO_LONG;
             case ROLES_LOCKED -> MessageKey.ROLE_LOCKED;
             case NOT_IN_ROLE -> MessageKey.ROLE_NOT_ASSIGNED;
             case CANCELLED_BY_PLUGIN -> MessageKey.ERROR_CANCELLED_BY_PLUGIN;

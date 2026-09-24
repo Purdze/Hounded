@@ -4,14 +4,22 @@ import dev.marshall.hounded.config.ConfigService;
 import dev.marshall.hounded.game.GameSession;
 import dev.marshall.hounded.game.GameState;
 import dev.marshall.hounded.game.Role;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiPredicate;
+import java.util.stream.Stream;
 import org.bukkit.Location;
 import org.bukkit.Server;
+import org.bukkit.entity.AreaEffectCloud;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
+import org.bukkit.entity.ThrownPotion;
+import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
+import org.bukkit.potion.PotionType;
 import org.bukkit.util.Vector;
 
 /**
@@ -51,6 +59,24 @@ public final class RuleEnforcer {
                 attackerRole.get(), victimRole.get(), configService.settings().rules());
     }
 
+    /** Whether the rules forbid this splash reaching the victim. Helpful potions always do. */
+    public boolean blocksSplash(ThrownPotion potion, Entity victim) {
+        PotionMeta meta = potion.getPotionMeta();
+        return isHarmful(meta.getBasePotionType(), meta.getCustomEffects()) && blocksDamage(potion, victim);
+    }
+
+    /** Whether the rules forbid this lingering cloud affecting the victim. Helpful clouds always do. */
+    public boolean blocksCloud(AreaEffectCloud cloud, Entity victim) {
+        return isHarmful(cloud.getBasePotionType(), cloud.getCustomEffects()) && blocksDamage(cloud, victim);
+    }
+
+    private static boolean isHarmful(PotionType baseType, List<PotionEffect> customEffects) {
+        Stream<PotionEffect> baseEffects =
+                Stream.ofNullable(baseType).flatMap(type -> type.getPotionEffects().stream());
+        return Stream.concat(baseEffects, customEffects.stream())
+                .anyMatch(effect -> effect.getType().getEffectCategory() == PotionEffectType.Category.HARMFUL);
+    }
+
     /** Whether a runner still in the round is looking at this hunter, so they may not move. */
     public boolean isHeldByGaze(Player hunter) {
         if (!configService.settings().rules().freezeWhenLookedAt()
@@ -83,6 +109,9 @@ public final class RuleEnforcer {
         }
         if (damager instanceof Projectile projectile && projectile.getShooter() instanceof Player shooter) {
             return Optional.of(shooter);
+        }
+        if (damager instanceof AreaEffectCloud cloud && cloud.getSource() instanceof Player thrower) {
+            return Optional.of(thrower);
         }
         return Optional.empty();
     }

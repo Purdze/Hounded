@@ -15,6 +15,8 @@ import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.entity.Pig;
+import org.bukkit.event.entity.EntityMountEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -109,6 +111,16 @@ class RuleEnforcerTest {
         runner.teleport(new Location(world, -10, 64, 0));
 
         assertFalse(rules.isHeldByGaze(runner));
+    }
+
+    @Test
+    void heldHunterCannotMountToEscape() {
+        session.start(0);
+        EntityMountEvent mount = new EntityMountEvent(hunter, world.spawn(hunter.getLocation(), Pig.class));
+
+        new RulesListener(rules).onMount(mount);
+
+        assertTrue(mount.isCancelled());
     }
 
     @Test

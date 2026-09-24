@@ -101,6 +101,15 @@ class GameSessionTest {
         }
 
         @Test
+        void headstartIsCappedAtTheMaximum() {
+            assignOneRunnerAndHunter();
+            assertEquals(
+                    Optional.of(RejectionReason.HEADSTART_TOO_LONG),
+                    session.checkStart(GameSession.MAX_HEADSTART_SECONDS + 1));
+            assertEquals(Optional.empty(), session.checkStart(GameSession.MAX_HEADSTART_SECONDS));
+        }
+
+        @Test
         void checkingDoesNotStartAnything() {
             assignOneRunnerAndHunter();
             session.checkStart(0);

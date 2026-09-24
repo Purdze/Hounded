@@ -10,11 +10,11 @@ public final class HoundedExpansion extends PlaceholderExpansion {
     static final String IDENTIFIER = "hounded";
 
     private final PluginMeta pluginMeta;
-    private final PlaceholderResolver resolver;
+    private final PlaceholderSnapshot snapshot;
 
-    public HoundedExpansion(PluginMeta pluginMeta, PlaceholderResolver resolver) {
+    public HoundedExpansion(PluginMeta pluginMeta, PlaceholderSnapshot snapshot) {
         this.pluginMeta = Objects.requireNonNull(pluginMeta, "pluginMeta");
-        this.resolver = Objects.requireNonNull(resolver, "resolver");
+        this.snapshot = Objects.requireNonNull(snapshot, "snapshot");
     }
 
     @Override
@@ -41,6 +41,6 @@ public final class HoundedExpansion extends PlaceholderExpansion {
     // PlaceholderAPI's contract: null means "not one of mine".
     @Override
     public String onRequest(OfflinePlayer player, String params) {
-        return resolver.resolve(player, params).orElse(null);
+        return snapshot.valueFor(player, params).orElse(null);
     }
 }

@@ -21,7 +21,10 @@ class HoundedExpansionTest {
     void setUp() throws ConfigLoadException {
         fixture = PluginFixture.start();
         GameSession session = new GameSession(new MutableClock());
-        expansion = new HoundedExpansion(fixture.plugin().getPluginMeta(), fixture.placeholderResolverFor(session));
+        PlaceholderSnapshot snapshot =
+                new PlaceholderSnapshot(fixture.placeholderResolverFor(session), fixture.server());
+        snapshot.refresh();
+        expansion = new HoundedExpansion(fixture.plugin().getPluginMeta(), snapshot);
     }
 
     @AfterEach

@@ -1,5 +1,6 @@
 package dev.marshall.hounded.config;
 
+import dev.marshall.hounded.game.GameSession;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -8,6 +9,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.IntPredicate;
 
 /**
  * Turns raw config values into {@link Settings}. Pure Java so validation is unit-testable. Bad or
@@ -31,9 +33,10 @@ public final class SettingsParser {
         Settings defaults = Settings.DEFAULTS;
         Settings settings = new Settings(
                 new Settings.Headstart(
-                        reader.intAtLeast(
+                        reader.intBetween(
                                 ConfigKey.HEADSTART_DEFAULT_SECONDS,
                                 0,
+                                GameSession.MAX_HEADSTART_SECONDS,
                                 defaults.headstart().defaultSeconds()),
                         reader.bool(
                                 ConfigKey.HEADSTART_FREEZE_HUNTERS,
@@ -87,11 +90,25 @@ public final class SettingsParser {
         }
 
         int intAtLeast(ConfigKey key, int minimum, int fallback) {
+            return wholeNumber(key, fallback, "a whole number >= " + minimum, number -> number >= minimum);
+        }
+
+        int intBetween(ConfigKey key, int minimum, int maximum, int fallback) {
+            return wholeNumber(
+                    key,
+                    fallback,
+                    "a whole number from " + minimum + " to " + maximum,
+                    number -> number >= minimum && number <= maximum);
+        }
+
+        private int wholeNumber(ConfigKey key, int fallback, String expected, IntPredicate allowed) {
             return read(
                     key,
                     fallback,
-                    "a whole number >= " + minimum,
-                    raw -> raw instanceof Integer number && number >= minimum ? Optional.of(number) : Optional.empty());
+                    expected,
+                    raw -> raw instanceof Integer number && allowed.test(number)
+                            ? Optional.of(number)
+                            : Optional.empty());
         }
 
         boolean bool(ConfigKey key, boolean fallback) {

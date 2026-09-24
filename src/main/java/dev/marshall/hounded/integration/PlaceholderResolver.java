@@ -13,8 +13,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalInt;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.Server;
+import org.bukkit.entity.Player;
 
 /**
  * Works out placeholder values without depending on PlaceholderAPI, so it can be tested on its own.
@@ -37,16 +37,8 @@ public final class PlaceholderResolver {
         this.server = Objects.requireNonNull(server, "server");
     }
 
-    /**
-     * @param player who the placeholder is for; may be null when there is no player context
-     * @return empty for a name Hounded doesn't know
-     */
-    public Optional<String> resolve(OfflinePlayer player, String name) {
-        Optional<OfflinePlayer> forPlayer = Optional.ofNullable(player);
-        return HoundedPlaceholder.byName(name).map(placeholder -> valueOf(placeholder, forPlayer));
-    }
-
-    private String valueOf(HoundedPlaceholder placeholder, Optional<OfflinePlayer> player) {
+    /** Main thread only: reads live game and tracking state. */
+    public String resolve(HoundedPlaceholder placeholder, Optional<Player> player) {
         return switch (placeholder) {
             case ROLE ->
                 player.flatMap(known -> session.roleOf(known.getUniqueId()))
@@ -70,8 +62,8 @@ public final class PlaceholderResolver {
     }
 
     /** Only an online hunter during the hunt has a compass reading. */
-    private Optional<TrackingReading> reading(Optional<OfflinePlayer> player) {
-        return player.map(OfflinePlayer::getPlayer).flatMap(trackingService::read);
+    private Optional<TrackingReading> reading(Optional<Player> player) {
+        return player.flatMap(trackingService::read);
     }
 
     private static MessageKey stateName(GameState state) {

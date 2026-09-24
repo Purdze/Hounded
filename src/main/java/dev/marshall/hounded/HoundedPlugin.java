@@ -85,7 +85,7 @@ public class HoundedPlugin extends JavaPlugin {
                 getServer());
         if (getServer().getPluginManager().isPluginEnabled(PlaceholderApiHook.PLUGIN_NAME)) {
             shutdownSteps.push(PlaceholderApiHook.register(
-                    getPluginMeta(), new PlaceholderResolver(session, trackingService, configService, getServer())));
+                    this, new PlaceholderResolver(session, trackingService, configService, getServer())));
             getLogger().info("PlaceholderAPI found: registered the %hounded_...% placeholders");
         }
         getLifecycleManager()

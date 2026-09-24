@@ -35,8 +35,8 @@ final class CommandReplies {
     }
 
     /** Only speaks up on rejection, for actions whose success is already broadcast to everyone. */
-    int replyIfRejected(CommandSourceStack source, TransitionResult result) {
-        RejectionMessages.keyFor(result).ifPresent(key -> send(source, key));
+    int replyIfRejected(CommandSourceStack source, TransitionResult result, TagResolver... placeholders) {
+        RejectionMessages.keyFor(result).ifPresent(key -> send(source, key, placeholders));
         return Command.SINGLE_SUCCESS;
     }
 

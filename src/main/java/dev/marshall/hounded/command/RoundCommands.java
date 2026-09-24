@@ -3,10 +3,13 @@ package dev.marshall.hounded.command;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import dev.marshall.hounded.config.ConfigService;
+import dev.marshall.hounded.config.PlaceholderNames;
+import dev.marshall.hounded.game.GameSession;
 import dev.marshall.hounded.round.RoundService;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
 import java.util.Objects;
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 
 /** {@code /hounded start [seconds]} and {@code /hounded stop}. Success is broadcast by {@link RoundService}. */
 final class RoundCommands {
@@ -27,7 +30,8 @@ final class RoundCommands {
                 .executes(context -> start(
                         context.getSource(),
                         configService.settings().headstart().defaultSeconds()))
-                .then(Commands.argument(SECONDS_ARGUMENT, IntegerArgumentType.integer(0))
+                .then(Commands.argument(
+                                SECONDS_ARGUMENT, IntegerArgumentType.integer(0, GameSession.MAX_HEADSTART_SECONDS))
                         .executes(context ->
                                 start(context.getSource(), IntegerArgumentType.getInteger(context, SECONDS_ARGUMENT))));
     }
@@ -38,6 +42,9 @@ final class RoundCommands {
     }
 
     private int start(CommandSourceStack source, int headstartSeconds) {
-        return replies.replyIfRejected(source, roundService.start(headstartSeconds));
+        return replies.replyIfRejected(
+                source,
+                roundService.start(headstartSeconds),
+                Placeholder.unparsed(PlaceholderNames.SECONDS, Integer.toString(GameSession.MAX_HEADSTART_SECONDS)));
     }
 }

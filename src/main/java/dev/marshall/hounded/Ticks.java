@@ -9,7 +9,8 @@ public final class Ticks {
 
     private Ticks() {}
 
+    /** Saturates at {@link Integer#MAX_VALUE} rather than overflowing. */
     public static int from(Duration duration) {
-        return Math.toIntExact(Math.max(0, duration.toMillis()) / MILLIS_PER_TICK);
+        return (int) Math.min(Integer.MAX_VALUE, Math.max(0, duration.toMillis()) / MILLIS_PER_TICK);
     }
 }

@@ -8,6 +8,7 @@ public enum RejectionReason {
     NO_RUNNERS,
     NO_HUNTERS,
     NEGATIVE_HEADSTART,
+    HEADSTART_TOO_LONG,
     NOT_A_RUNNER,
     NOT_IN_ROLE,
     ALREADY_ELIMINATED,
