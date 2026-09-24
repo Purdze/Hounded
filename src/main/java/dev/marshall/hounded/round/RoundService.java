@@ -8,6 +8,7 @@ import dev.marshall.hounded.game.GameOutcome;
 import dev.marshall.hounded.game.GameSession;
 import dev.marshall.hounded.game.GameState;
 import dev.marshall.hounded.game.TransitionResult;
+import dev.marshall.hounded.tracking.CompassHandout;
 import java.time.Duration;
 import java.util.Objects;
 import java.util.UUID;
@@ -27,14 +28,21 @@ public final class RoundService {
     private final GameSession session;
     private final ConfigService configService;
     private final HeadstartHold headstartHold;
+    private final CompassHandout compassHandout;
     private final SpectatorSwitcher spectators;
     private BukkitTask roundTask;
 
-    public RoundService(Plugin plugin, GameSession session, ConfigService configService, HeadstartHold headstartHold) {
+    public RoundService(
+            Plugin plugin,
+            GameSession session,
+            ConfigService configService,
+            HeadstartHold headstartHold,
+            CompassHandout compassHandout) {
         this.plugin = Objects.requireNonNull(plugin, "plugin");
         this.session = Objects.requireNonNull(session, "session");
         this.configService = Objects.requireNonNull(configService, "configService");
         this.headstartHold = Objects.requireNonNull(headstartHold, "headstartHold");
+        this.compassHandout = Objects.requireNonNull(compassHandout, "compassHandout");
         this.spectators = new SpectatorSwitcher(plugin.getServer());
     }
 
@@ -47,6 +55,7 @@ public final class RoundService {
             } else {
                 broadcast(MessageKey.START_RELEASED);
             }
+            compassHandout.roundStarted();
             roundTask = plugin.getServer()
                     .getScheduler()
                     .runTaskTimer(plugin, this::tickRound, Ticks.PER_SECOND, Ticks.PER_SECOND);
@@ -120,6 +129,7 @@ public final class RoundService {
         if (session.state() == GameState.ENDED) {
             cancelRoundTask();
             headstartHold.releaseAll();
+            compassHandout.roundEnded();
             announce(session.outcome().orElseThrow());
             spectators.restoreAll();
             session.reset();

@@ -1,10 +1,13 @@
 package dev.marshall.hounded.tracking;
 
 import java.util.Objects;
+import java.util.function.Predicate;
+import java.util.stream.IntStream;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.CompassMeta;
 import org.bukkit.persistence.PersistentDataType;
@@ -67,6 +70,37 @@ public final class CompassItem {
         meta.clearLodestone();
         compass.setItemMeta(meta);
         return true;
+    }
+
+    /**
+     * Applies {@code change} to every tracking compass in the inventory. Only slots that changed are
+     * written back, so unchanged items aren't re-sent to the client.
+     *
+     * @param change modifies a compass and returns whether it did
+     */
+    public void updateAll(Inventory inventory, Predicate<ItemStack> change) {
+        for (int slot : trackingCompassSlots(inventory)) {
+            ItemStack compass = inventory.getItem(slot);
+            if (change.test(compass)) {
+                inventory.setItem(slot, compass);
+            }
+        }
+    }
+
+    public void removeAll(Inventory inventory) {
+        for (int slot : trackingCompassSlots(inventory)) {
+            inventory.setItem(slot, null);
+        }
+    }
+
+    public boolean isIn(Inventory inventory) {
+        return trackingCompassSlots(inventory).length > 0;
+    }
+
+    private int[] trackingCompassSlots(Inventory inventory) {
+        return IntStream.range(0, inventory.getSize())
+                .filter(slot -> isTrackingCompass(inventory.getItem(slot)))
+                .toArray();
     }
 
     private static boolean isSameBlock(Location first, Location second) {

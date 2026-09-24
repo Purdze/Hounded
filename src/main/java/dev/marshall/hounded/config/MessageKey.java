@@ -37,6 +37,7 @@ public enum MessageKey {
     COMPASS_HOW_TO_USE_AUTO("compass.how-to-use-auto"),
     COMPASS_HOW_TO_USE_MANUAL("compass.how-to-use-manual"),
     COMPASS_NOT_IN_ROUND("compass.not-in-round"),
+    COMPASS_NOW_TRACKING("compass.now-tracking"),
     COMPASS_NO_DATA("compass.no-data"),
     COMPASS_DISABLED_IN_NETHER("compass.disabled-in-nether"),
     ERROR_INTERNAL("error.internal");

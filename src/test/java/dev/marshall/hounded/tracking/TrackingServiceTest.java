@@ -31,6 +31,7 @@ class TrackingServiceTest {
     private PluginFixture fixture;
     private CompassItem compassItem;
     private TrackingService tracking;
+    private CompassHandout handout;
     private World overworld;
     private World nether;
     private World end;
@@ -40,8 +41,10 @@ class TrackingServiceTest {
     @BeforeEach
     void setUp() throws ConfigLoadException {
         fixture = PluginFixture.start();
-        compassItem = new CompassItem(fixture.plugin());
-        tracking = new TrackingService(session, new TargetResolver(), compassItem, fixture.config(), fixture.server());
+        PluginFixture.Tracking parts = fixture.trackingFor(session);
+        compassItem = parts.compassItem();
+        tracking = parts.service();
+        handout = parts.handout();
         overworld = fixture.addWorld("world", World.Environment.NORMAL);
         nether = fixture.addWorld("world_nether", World.Environment.NETHER);
         end = fixture.addWorld("world_the_end", World.Environment.THE_END);
@@ -72,7 +75,7 @@ class TrackingServiceTest {
         session.start(0);
         runner.teleport(block(overworld, 100, 64, -50));
 
-        tracking.giveCompass(hunter);
+        handout.give(hunter);
 
         assertEquals(Optional.of(block(overworld, 100, 64, -50)), compassTarget(hunter));
     }
@@ -82,7 +85,7 @@ class TrackingServiceTest {
         session.start(0);
         runnerTakesPortal(block(overworld, 10, 70, 20), block(nether, 1, 64, 2));
 
-        tracking.giveCompass(hunter);
+        handout.give(hunter);
 
         assertEquals(Optional.of(block(overworld, 10, 70, 20)), compassTarget(hunter));
     }
@@ -91,7 +94,7 @@ class TrackingServiceTest {
     void hunterFollowingIntoTheNetherPointsAtTheRunnerThere() {
         session.start(0);
         runnerTakesPortal(block(overworld, 10, 70, 20), block(nether, 1, 64, 2));
-        tracking.giveCompass(hunter);
+        handout.give(hunter);
 
         hunter.teleport(block(nether, 50, 64, 50));
         tracking.updateCompass(hunter, false);
@@ -107,7 +110,7 @@ class TrackingServiceTest {
         String noData = fixture.chat(
                 MessageKey.COMPASS_NO_DATA, Placeholder.unparsed(PlaceholderNames.RUNNER, runner.getName()));
 
-        tracking.giveCompass(hunter);
+        handout.give(hunter);
         assertEquals(Optional.of(end.getSpawnLocation().toBlockLocation()), compassTarget(hunter));
         assertTrue(messagesOf(hunter).contains(noData));
 
@@ -125,7 +128,7 @@ class TrackingServiceTest {
         tracking.recordQuit(runner);
         runner.disconnect();
 
-        tracking.giveCompass(hunter);
+        handout.give(hunter);
 
         assertEquals(Optional.of(block(overworld, -30, 64, 7)), compassTarget(hunter));
     }
@@ -135,18 +138,18 @@ class TrackingServiceTest {
         session.start(30);
         runner.teleport(block(overworld, 100, 64, -50));
 
-        assertTrue(tracking.giveCompass(hunter));
+        assertTrue(handout.give(hunter));
 
         assertEquals(Optional.empty(), compassTarget(hunter));
     }
 
     @Test
     void onlyHuntersInARoundGetACompass() {
-        assertFalse(tracking.giveCompass(hunter));
+        assertFalse(handout.give(hunter));
 
         session.start(0);
 
-        assertFalse(tracking.giveCompass(runner));
+        assertFalse(handout.give(runner));
         assertTrue(Arrays.stream(runner.getInventory().getContents())
                 .filter(Objects::nonNull)
                 .noneMatch(compassItem::isTrackingCompass));

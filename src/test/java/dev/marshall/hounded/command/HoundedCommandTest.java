@@ -120,7 +120,9 @@ class HoundedCommandTest {
         fixture.assignRoles(admin, steve);
         messagesOf(steve);
 
-        assertEquals(List.of(fixture.chat(MessageKey.START_RELEASED)), run(admin, "hounded start 0"));
+        assertEquals(
+                fixture.chat(MessageKey.START_RELEASED),
+                run(admin, "hounded start 0").getFirst());
         assertEquals(List.of(fixture.chat(MessageKey.START_RELEASED)), messagesOf(steve));
     }
 

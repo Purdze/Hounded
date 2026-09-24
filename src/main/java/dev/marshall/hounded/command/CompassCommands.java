@@ -4,7 +4,7 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import dev.marshall.hounded.Permissions;
 import dev.marshall.hounded.config.MessageKey;
-import dev.marshall.hounded.tracking.TrackingService;
+import dev.marshall.hounded.tracking.CompassHandout;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
 import java.util.Objects;
@@ -12,11 +12,11 @@ import org.bukkit.entity.Player;
 
 /** {@code /hounded compass}: a replacement tracking compass for hunters. */
 final class CompassCommands {
-    private final TrackingService trackingService;
+    private final CompassHandout compassHandout;
     private final CommandReplies replies;
 
-    CompassCommands(TrackingService trackingService, CommandReplies replies) {
-        this.trackingService = Objects.requireNonNull(trackingService, "trackingService");
+    CompassCommands(CompassHandout compassHandout, CommandReplies replies) {
+        this.compassHandout = Objects.requireNonNull(compassHandout, "compassHandout");
         this.replies = Objects.requireNonNull(replies, "replies");
     }
 
@@ -27,7 +27,7 @@ final class CompassCommands {
     }
 
     private int give(CommandSourceStack source) {
-        if (source.getSender() instanceof Player player && trackingService.giveCompass(player)) {
+        if (source.getSender() instanceof Player player && compassHandout.give(player)) {
             return Command.SINGLE_SUCCESS;
         }
         return replies.send(source, MessageKey.COMPASS_NOT_IN_ROUND);

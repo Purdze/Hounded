@@ -65,6 +65,7 @@ compass:
   name: "<gold>Tracking Compass</gold>"
   how-to-use-auto: "<gray>Your compass tracks</gray> <white><runner></white> <gray>and updates by itself. Left-click to switch runner.</gray>"
   how-to-use-manual: "<gray>Your compass tracks</gray> <white><runner></white><gray>. Right-click to update it, left-click to switch runner.</gray>"
+  now-tracking: "<gray>Now tracking</gray> <white><runner></white><gray>.</gray>"
   not-in-round: "<red>You can only get a tracking compass as a hunter during a round.</red>"
   no-data: "<yellow>No trail to follow yet: <white><runner></white> hasn't been seen in this dimension. Pointing at spawn.</yellow>"
   disabled-in-nether: "<gray>Compass tracking is disabled in the Nether.</gray>"

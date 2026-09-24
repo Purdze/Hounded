@@ -10,6 +10,7 @@ import dev.marshall.hounded.listener.RoundListener;
 import dev.marshall.hounded.listener.TrackingListener;
 import dev.marshall.hounded.round.HeadstartHold;
 import dev.marshall.hounded.round.RoundService;
+import dev.marshall.hounded.tracking.CompassHandout;
 import dev.marshall.hounded.tracking.CompassItem;
 import dev.marshall.hounded.tracking.TargetResolver;
 import dev.marshall.hounded.tracking.TrackingService;
@@ -38,15 +39,20 @@ public class HoundedPlugin extends JavaPlugin {
         }
 
         GameSession session = new GameSession(Clock.systemUTC());
-        HeadstartHold headstartHold = new HeadstartHold(session, configService, getServer());
-        roundService = new RoundService(this, session, configService, headstartHold);
         CompassItem compassItem = new CompassItem(this);
-        trackingService = new TrackingService(session, new TargetResolver(), compassItem, configService, getServer());
+        trackingService = new TrackingService(this, session, new TargetResolver(), compassItem, configService);
+        trackingService.start();
+        CompassHandout compassHandout =
+                new CompassHandout(session, trackingService, compassItem, configService, getServer());
+        HeadstartHold headstartHold = new HeadstartHold(session, configService, getServer());
+        roundService = new RoundService(this, session, configService, headstartHold, compassHandout);
 
         getServer().getPluginManager().registerEvents(new RoundListener(roundService), this);
         getServer().getPluginManager().registerEvents(new HeadstartListener(headstartHold), this);
-        getServer().getPluginManager().registerEvents(new TrackingListener(trackingService, compassItem), this);
-        HoundedCommand command = new HoundedCommand(session, roundService, trackingService, configService, getServer());
+        getServer()
+                .getPluginManager()
+                .registerEvents(new TrackingListener(trackingService, compassHandout, compassItem), this);
+        HoundedCommand command = new HoundedCommand(session, roundService, compassHandout, configService, getServer());
         getLifecycleManager()
                 .registerEventHandler(
                         LifecycleEvents.COMMANDS,

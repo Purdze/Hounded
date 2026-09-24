@@ -121,6 +121,19 @@ class GameSessionTest {
         }
     }
 
+    @Test
+    void playersArePlayingTheirRoleOnlyDuringARound() {
+        assignOneRunnerAndHunter();
+        assertFalse(session.isPlaying(hunter, Role.HUNTER));
+
+        session.start(10);
+        assertTrue(session.isPlaying(hunter, Role.HUNTER));
+        assertFalse(session.isPlaying(hunter, Role.RUNNER));
+
+        session.stop();
+        assertFalse(session.isPlaying(hunter, Role.HUNTER));
+    }
+
     @Nested
     class HeadstartHold {
         @Test

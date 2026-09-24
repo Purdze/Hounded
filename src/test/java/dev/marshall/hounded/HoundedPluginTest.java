@@ -1,6 +1,6 @@
 package dev.marshall.hounded;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.marshall.hounded.config.ConfigLoadException;
@@ -31,12 +31,12 @@ class HoundedPluginTest {
     }
 
     @Test
-    void disablingCancelsTheHeadstartTimer() {
+    void disablingCancelsAllTasks() {
         fixture.startRound(fixture.addAdmin("Admin"), 30, fixture.server().addPlayer("Runner"));
-        assertTrue(fixture.hasScheduledTasks());
+        assertTrue(fixture.scheduledTaskCount() > 0);
 
         fixture.server().getPluginManager().disablePlugin(fixture.plugin());
 
-        assertFalse(fixture.hasScheduledTasks());
+        assertEquals(0, fixture.scheduledTaskCount());
     }
 }

@@ -36,15 +36,13 @@ class RoundServiceTest {
     private PlayerMock watcher;
     private PlayerMock runner;
     private PlayerMock hunter;
+    private int tasksBeforeTheRound;
 
     @BeforeEach
     void setUp() throws ConfigLoadException {
         fixture = PluginFixture.start();
-        roundService = new RoundService(
-                fixture.plugin(),
-                session,
-                fixture.config(),
-                new HeadstartHold(session, fixture.config(), fixture.server()));
+        roundService = fixture.roundServiceFor(session);
+        tasksBeforeTheRound = fixture.scheduledTaskCount();
         watcher = fixture.server().addPlayer("Watcher");
         runner = fixture.server().addPlayer("Runner");
         session.assignRole(runner.getUniqueId(), Role.RUNNER);
@@ -67,6 +65,10 @@ class RoundServiceTest {
         PlayerMock second = fixture.server().addPlayer("SecondRunner");
         session.assignRole(second.getUniqueId(), Role.RUNNER);
         return second;
+    }
+
+    private boolean roundTimerRunning() {
+        return fixture.scheduledTaskCount() > tasksBeforeTheRound;
     }
 
     private int graceSeconds() {
@@ -113,13 +115,13 @@ class RoundServiceTest {
     @Test
     void endedRoundReturnsToLobbyWithRolesKeptAndNoTimer() {
         roundService.start(0);
-        assertTrue(fixture.hasScheduledTasks());
+        assertTrue(roundTimerRunning());
 
         roundService.recordDragonKilled();
 
         assertEquals(GameState.LOBBY, session.state());
         assertEquals(List.of(runner.getUniqueId()), session.playersWith(Role.RUNNER));
-        assertFalse(fixture.hasScheduledTasks());
+        assertFalse(roundTimerRunning());
     }
 
     @Test
@@ -130,7 +132,7 @@ class RoundServiceTest {
         roundService.stop();
 
         assertEquals(List.of(fixture.chat(MessageKey.STOP_STOPPED)), messagesOf(watcher));
-        assertFalse(fixture.hasScheduledTasks());
+        assertFalse(roundTimerRunning());
         assertEquals(GameState.LOBBY, session.state());
     }
 

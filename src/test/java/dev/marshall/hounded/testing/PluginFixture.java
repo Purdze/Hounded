@@ -7,6 +7,13 @@ import dev.marshall.hounded.config.ConfigLoader;
 import dev.marshall.hounded.config.ConfigService;
 import dev.marshall.hounded.config.MessageKey;
 import dev.marshall.hounded.config.PlaceholderNames;
+import dev.marshall.hounded.game.GameSession;
+import dev.marshall.hounded.round.HeadstartHold;
+import dev.marshall.hounded.round.RoundService;
+import dev.marshall.hounded.tracking.CompassHandout;
+import dev.marshall.hounded.tracking.CompassItem;
+import dev.marshall.hounded.tracking.TargetResolver;
+import dev.marshall.hounded.tracking.TrackingService;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -61,6 +68,25 @@ public final class PluginFixture implements AutoCloseable {
         return config;
     }
 
+    /** The compass services wired to {@code session}, for tests that drive their own round. */
+    public record Tracking(CompassItem compassItem, TrackingService service, CompassHandout handout) {}
+
+    public Tracking trackingFor(GameSession session) {
+        CompassItem compassItem = new CompassItem(plugin);
+        TrackingService service = new TrackingService(plugin, session, new TargetResolver(), compassItem, config);
+        return new Tracking(compassItem, service, new CompassHandout(session, service, compassItem, config, server));
+    }
+
+    /** A round service on {@code session}, with its own tracking and headstart hold. */
+    public RoundService roundServiceFor(GameSession session) {
+        return new RoundService(
+                plugin,
+                session,
+                config,
+                new HeadstartHold(session, config, server),
+                trackingFor(session).handout());
+    }
+
     public PlayerMock addAdmin(String name) {
         PlayerMock admin = server.addPlayer(name);
         admin.setOp(true);
@@ -110,8 +136,8 @@ public final class PluginFixture implements AutoCloseable {
         return meta.hasLodestone() ? Optional.of(meta.getLodestone()) : Optional.empty();
     }
 
-    public boolean hasScheduledTasks() {
-        return !server.getScheduler().getPendingTasks().isEmpty();
+    public int scheduledTaskCount() {
+        return server.getScheduler().getPendingTasks().size();
     }
 
     /** The chat line a player would see for {@code key}, as plain text. */

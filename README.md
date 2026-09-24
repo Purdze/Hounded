@@ -2,7 +2,7 @@
 
 A manhunt game mode for Paper: one or more speedrunners try to beat the game while hunters track them with a compass that works in every dimension.
 
-> **Status: early development (0.1.0-SNAPSHOT).** You can assign roles and play a full round: headstart, then a win when the dragon dies or every runner dies. The tracking compass is **not implemented yet**.
+> **Status: early development (0.1.0-SNAPSHOT).** Full rounds work, including the tracking compass. Timer/distance display, PlaceholderAPI and the events API are still to come.
 
 ## Requirements
 - Paper **26.2**
@@ -14,7 +14,7 @@ A manhunt game mode for Paper: one or more speedrunners try to beat the game whi
 3. Optional: install PlaceholderAPI for placeholders (planned).
 
 ## Commands
-All commands except `help` need `hounded.admin`. `add` and `remove` take an online player. `/hounded compass` arrives with the compass.
+All commands except `help` and `compass` need `hounded.admin`. `add` and `remove` take an online player.
 
 | Command | Description |
 |---|---|
@@ -22,6 +22,7 @@ All commands except `help` need `hounded.admin`. `add` and `remove` take an onli
 | `/hounded hunter add\|remove\|list\|clear [player]` | Manage hunters |
 | `/hounded start [seconds]` | Start a round with an optional headstart (0 = none) |
 | `/hounded stop` | Stop the current round |
+| `/hounded compass` | Get your tracking compass back (hunters in a round, `hounded.compass`) |
 | `/hounded reload` | Reload `config.yml` and `messages.yml` |
 | `/hounded help` | Show help (also plain `/hounded`) |
 
@@ -34,6 +35,14 @@ All commands except `help` need `hounded.admin`. `add` and `remove` take an onli
 4. The result is announced with the hunt time, and the game returns to the lobby. Spectating runners get their previous game mode back, and roles are kept for the next round.
 
 Roles can't be changed during a round. Use `/hounded stop` first.
+
+## The tracking compass
+Every hunter gets a tracking compass when the round starts, and again after dying or rejoining. It's collected when the round ends, and it can't be dropped.
+- **Where it points:** at the runner when you're in the same dimension. Otherwise it points at the portal they left your dimension through. In the Nether and the End it points properly, where a normal compass would spin. If there's no trail in your dimension yet, it points at spawn and tells you so.
+- **Updates:** it updates by itself every `compass.update-interval-ticks`. In `manual` mode you right-click it to update.
+- **More than one runner:** left-click switches to the next one.
+- **Offline runners:** the compass keeps pointing where they were last seen.
+- **During the headstart:** it doesn't point anywhere, so it can't give away where runners went.
 
 ## Permissions
 | Node | Default | Grants |
