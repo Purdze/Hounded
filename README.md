@@ -1,8 +1,6 @@
 # Hounded - Manhunt
 
-A manhunt game mode for Paper: one or more speedrunners try to beat the game while hunters track them with a compass that works in every dimension.
-
-> **Version 1.0.0.** Full rounds, a tracking compass that works in every dimension, a timer and distance display, PlaceholderAPI placeholders and an events API for other plugins.
+A manhunt game mode for Paper: one or more speedrunners try to beat the game while hunters track them with a compass that works in every dimension. Version 1.0.0 has full rounds, a timer and distance display, PlaceholderAPI placeholders and an events API for other plugins.
 
 ## Requirements
 - Paper **1.21.4 or newer**, up to **26.2**
@@ -13,29 +11,19 @@ A manhunt game mode for Paper: one or more speedrunners try to beat the game whi
 2. Start the server. Hounded creates `plugins/Hounded/config.yml` and `messages.yml`.
 3. Optional: install [PlaceholderAPI](https://www.spigotmc.org/resources/placeholderapi.6245/) to use Hounded's placeholders in other plugins (scoreboards, tab lists, chat).
 
-## Commands
-All commands except `help` and `compass` need `hounded.admin`.
+## Quick start
+```
+/hounded runner add <player>
+/hounded hunter add <player>
+/hounded start 30
+```
+That starts a round with a 30 second headstart. `/hounded help` lists everything else.
 
-| Command | Description |
-|---|---|
-| `/hounded runner add\|remove <player>` | Make an online player a runner, or take the role away |
-| `/hounded runner list\|clear` | List all runners, or remove them all |
-| `/hounded hunter add\|remove <player>` | Same for hunters |
-| `/hounded hunter list\|clear` | Same for hunters |
-| `/hounded start [seconds]` | Start a round with an optional headstart (0 = none, at most 3600) |
-| `/hounded stop` | Stop the current round |
-| `/hounded compass` | Get your tracking compass back (hunters in a round, `hounded.compass`) |
-| `/hounded reload` | Reload `config.yml` and `messages.yml` |
-| `/hounded help` | Show help (also plain `/hounded`) |
-
-## First run
-Until the first round is started, admins get a short "how to start" guide in chat when they join. After that it's gone for good: the server remembers it in `plugins/Hounded/data.yml`. To see the guide again, delete that file. To turn it off, set `quick-start-guide: false`.
+Until the first round is started, admins also get a short "how to start" guide in chat when they join. After that it's gone for good: the server remembers it in `plugins/Hounded/data.yml`. To see the guide again, delete that file. To turn it off, set `quick-start-guide: false`.
 
 ## How a round works
 1. Add at least one runner and one hunter.
-2. `/hounded start 30` gives runners 30 seconds, then the hunters are released. During the headstart, hunters are frozen: they can look around but can't move, mine, build, attack, use items, ride or be hurt. They're blind too (both configurable).
-   - A hunter who is riding when the headstart begins is put on foot.
-   - A frozen hunter can't be teleported by commands or other plugins, unless they have `hounded.admin`. An admin can still teleport themselves, but not other hunters: stop the round first, or wait for the release.
+2. `/hounded start 30` gives runners 30 seconds, then the hunters are released. Until then, hunters are frozen (they can look around but can't act) and blind. See `headstart.*` under [Configuration](#configuration-configyml).
 3. Runners win when the ender dragon dies. Hunters win when every runner is out.
    - A runner who dies is out, and watches in spectator mode until the round ends (configurable).
    - A runner who leaves the server has 5 minutes (configurable) to come back, or they're out too.
@@ -57,7 +45,22 @@ During a round, everyone in the round sees a boss bar (or a scoreboard sidebar, 
 - **While hunting:** the hunt timer.
 - **Hunters also see** how far away their runner is. If the runner is in another dimension, it shows which one and how far away their portal is.
 
-Distances are horizontal blocks, like the X/Z on F3. The display is hidden outside a round. Changing `display.mode` with `/hounded reload` switches it immediately.
+Distances are horizontal blocks, like the X/Z on F3. The display is hidden outside a round.
+
+## Commands
+All commands except `help` and `compass` need `hounded.admin`.
+
+| Command | Description |
+|---|---|
+| `/hounded runner add\|remove <player>` | Make an online player a runner, or take the role away |
+| `/hounded runner list\|clear` | List all runners, or remove them all |
+| `/hounded hunter add\|remove <player>` | Same for hunters |
+| `/hounded hunter list\|clear` | Same for hunters |
+| `/hounded start [seconds]` | Start a round with an optional headstart (0 = none, at most 3600) |
+| `/hounded stop` | Stop the current round |
+| `/hounded compass` | Get your tracking compass back (hunters in a round, `hounded.compass`) |
+| `/hounded reload` | Reload `config.yml` and `messages.yml` |
+| `/hounded help` | Show help (also plain `/hounded`) |
 
 ## Permissions
 | Node | Default | Grants |
@@ -69,7 +72,7 @@ Distances are horizontal blocks, like the X/Z on F3. The display is hidden outsi
 | Key | Default | Meaning |
 |---|---|---|
 | `headstart.default-seconds` | `30` | Headstart when `/hounded start` has no number. `0` = none, at most `3600` (1 hour). |
-| `headstart.freeze-hunters` | `true` | Hunters can't move, mine, build, attack, use or drop items, ride, be teleported or be hurt until released. |
+| `headstart.freeze-hunters` | `true` | Hunters can't move, mine, build, attack, use or drop items, ride or be hurt until released. A hunter who is riding is put on foot. Commands and other plugins can't teleport them unless they have `hounded.admin`: to move another hunter, stop the round first or wait for the release. |
 | `headstart.blind-hunters` | `true` | Hunters are blind until released. |
 | `compass.update-mode` | `auto` | `auto` updates on a timer; `manual` updates on right-click. |
 | `compass.update-interval-ticks` | `20` | Auto-update interval (20 ticks = 1 s). Minimum 1. |
@@ -83,12 +86,12 @@ Distances are horizontal blocks, like the X/Z on F3. The display is hidden outsi
 | `display.show-distance` | `true` | Show hunters the distance to their target. |
 | `quick-start-guide` | `true` | Show admins a short start guide in chat until the first round is started. |
 
+The two attack rules (`runner-can-attack-hunters` and `friendly-fire`) don't cover fire that keeps burning after a hit, explosions, lava or fire placed by a player, or tamed pets.
+
 Invalid values fall back to the default. The console says which key was wrong.
 
-The attack rules don't cover fire that keeps burning after a hit, explosions, lava or fire placed by a player, or tamed pets.
-
 ## Messages (`messages.yml`)
-Every player-facing text is in `messages.yml`, in [MiniMessage](https://docs.advntr.dev/minimessage/format.html) format, so you can recolour or translate it. Keys missing from your file fall back to the bundled English.
+Every player-facing text is in `messages.yml`, in [MiniMessage](https://docs.papermc.io/adventure/minimessage/format/) format, so you can recolour or translate it. Keys missing from your file fall back to the bundled English.
 
 ## Placeholders
 With PlaceholderAPI installed, these work anywhere PlaceholderAPI does. Values are plain text, and empty when they don't apply to the player. They're updated once a second.
@@ -123,19 +126,21 @@ public void onWin(HoundedRoundWinEvent event) {
 
 `Role` is `dev.marshall.hounded.game.Role` (`RUNNER` or `HUNTER`). Add `softdepend: [Hounded]` to your `plugin.yml`.
 
-## Building
+## Development
+
+### Building
 ```
 ./gradlew build
 ```
-Needs a JDK 25 that Gradle can find (Gradle itself can run on 21+). The plugin is compiled against the Paper 1.21.4 API for Java 21, and tested against Paper 26.2. `runServerOldest` also needs a JDK 21. The jar goes to `build/libs/`. Formatting is enforced: run `./gradlew spotlessApply` if the build complains.
+Needs a JDK 25 that Gradle can find (Gradle itself can run on 21+). The plugin is compiled against the Paper 1.21.4 API for Java 21, and tested against Paper 26.2. The jar goes to `build/libs/`. Formatting is enforced: run `./gradlew spotlessApply` if the build complains.
 
-## Local test server
+### Local test server
 ```
 ./gradlew runServer
 ```
-Builds the plugin and starts a Paper 26.2 server in `test-server/` with it loaded. `./gradlew runServerOldest` does the same with Paper 1.21.4 on Java 21 in `test-server-1.21.4/`, to check the oldest supported version (via [run-paper](https://github.com/jpenilla/run-task)). Type server commands in the same terminal and `stop` to shut down. Starting it accepts the Minecraft EULA (see `build.gradle.kts`). `test-server/` isn't committed.
+Builds the plugin and starts a Paper 26.2 server in `test-server/` with it loaded (via [run-paper](https://github.com/jpenilla/run-task)). `./gradlew runServerOldest` does the same with Paper 1.21.4 in `test-server-1.21.4/`, to check the oldest supported version; it needs a JDK 21. Type server commands in the same terminal and `stop` to shut down. Starting either server accepts the Minecraft EULA (see `build.gradle.kts`). Neither server folder is committed.
 
-## Tests
+### Tests
 `./gradlew test` runs plain unit tests for the game logic, plus [MockBukkit](https://github.com/MockBukkit/MockBukkit) tests that load the plugin on a simulated server and drive commands, deaths and the headstart timer.
 
 ## License
