@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "dev.marshall"
-version = "0.1.0-SNAPSHOT"
+version = "1.0.0"
 description = "Hounded – Manhunt: speedrunners vs hunters for Paper"
 
 val paperApiVersion = "26.2.build.129-stable"

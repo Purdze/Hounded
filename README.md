@@ -2,7 +2,7 @@
 
 A manhunt game mode for Paper: one or more speedrunners try to beat the game while hunters track them with a compass that works in every dimension.
 
-> **Status: early development (0.1.0-SNAPSHOT).** All v1 features are in: full rounds, the tracking compass, the timer/distance display, PlaceholderAPI placeholders and an events API for other plugins.
+> **Version 1.0.0.** Full rounds, a tracking compass that works in every dimension, a timer and distance display, PlaceholderAPI placeholders and an events API for other plugins.
 
 ## Requirements
 - Paper **26.2**
