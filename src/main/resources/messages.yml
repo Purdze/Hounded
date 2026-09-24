@@ -1,4 +1,4 @@
-# Hounded messages, in MiniMessage format: https://docs.advntr.dev/minimessage/format.html
+# Hounded messages, in MiniMessage format: https://docs.papermc.io/adventure/minimessage/format/
 # Words in <angle_brackets> that are not formatting tags are placeholders filled in by the plugin.
 # Missing keys fall back to the bundled English text. Apply changes with /hounded reload.
 
