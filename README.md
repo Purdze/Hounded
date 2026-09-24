@@ -70,9 +70,9 @@ Distances are horizontal blocks, like the X/Z on F3. The display is hidden outsi
 | `compass.update-mode` | `auto` | `auto` updates on a timer; `manual` updates on right-click. |
 | `compass.update-interval-ticks` | `20` | Auto-update interval (20 ticks = 1 s). Minimum 1. |
 | `compass.disable-in-nether-for-hunters` | `false` | Turn off tracking while a hunter is in the Nether. |
-| `rules.freeze-when-looked-at` | `false` | Hunters freeze while a runner looks at them. Nobody dies from it. |
-| `rules.runner-can-attack-hunters` | `true` | Runners may damage hunters. |
-| `rules.friendly-fire` | `false` | Players on the same side may damage each other. |
+| `rules.freeze-when-looked-at` | `false` | While hunting, a hunter can't walk while a runner is looking at them (within about 15° of the crosshair, clear view, up to 64 blocks). They can still look around, attack and use items. Nobody is hurt by it. |
+| `rules.runner-can-attack-hunters` | `true` | Runners may damage hunters, including with arrows and other projectiles. |
+| `rules.friendly-fire` | `false` | Players on the same side may damage each other, including with projectiles. |
 | `rules.eliminated-runners-spectate` | `true` | Runners who are out watch in spectator mode until the round ends. |
 | `rules.runner-rejoin-grace-seconds` | `300` | Seconds a runner who leaves has to come back before they're out. `0` = out at once. |
 | `display.mode` | `bossbar` | `bossbar`, `scoreboard` or `none`. Switches live on `/hounded reload`. |

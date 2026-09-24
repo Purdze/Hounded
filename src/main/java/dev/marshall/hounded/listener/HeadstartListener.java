@@ -2,7 +2,6 @@ package dev.marshall.hounded.listener;
 
 import dev.marshall.hounded.round.HeadstartHold;
 import java.util.Objects;
-import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
@@ -25,15 +24,9 @@ public final class HeadstartListener implements Listener {
         this.headstartHold = Objects.requireNonNull(headstartHold, "headstartHold");
     }
 
-    // Keep the new view direction: cancelling the whole move would also lock the camera.
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onMove(PlayerMoveEvent event) {
-        if (event.hasChangedPosition() && headstartHold.isFrozen(event.getPlayer())) {
-            Location held = event.getFrom().clone();
-            held.setYaw(event.getTo().getYaw());
-            held.setPitch(event.getTo().getPitch());
-            event.setTo(held);
-        }
+        PositionLock.holdIfFrozen(event, headstartHold::isFrozen);
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)

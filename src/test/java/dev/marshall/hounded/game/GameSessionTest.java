@@ -156,6 +156,16 @@ class GameSessionTest {
     }
 
     @Test
+    void roleInRoundIsOnlyKnownDuringARound() {
+        assignOneRunnerAndHunter();
+        assertEquals(Optional.empty(), session.roleInRound(hunter));
+
+        session.start(10);
+        assertEquals(Optional.of(Role.HUNTER), session.roleInRound(hunter));
+        assertEquals(Optional.empty(), session.roleInRound(UUID.randomUUID()));
+    }
+
+    @Test
     void playersArePlayingTheirRoleOnlyDuringARound() {
         assignOneRunnerAndHunter();
         assertFalse(session.isPlaying(hunter, Role.HUNTER));

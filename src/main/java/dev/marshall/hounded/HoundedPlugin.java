@@ -10,12 +10,14 @@ import dev.marshall.hounded.listener.DisplayListener;
 import dev.marshall.hounded.listener.HeadstartListener;
 import dev.marshall.hounded.listener.OnboardingListener;
 import dev.marshall.hounded.listener.RoundListener;
+import dev.marshall.hounded.listener.RulesListener;
 import dev.marshall.hounded.listener.TrackingListener;
 import dev.marshall.hounded.onboarding.FirstRoundMarker;
 import dev.marshall.hounded.onboarding.QuickStartGuide;
 import dev.marshall.hounded.role.RoleService;
 import dev.marshall.hounded.round.HeadstartHold;
 import dev.marshall.hounded.round.RoundService;
+import dev.marshall.hounded.rules.RuleEnforcer;
 import dev.marshall.hounded.tracking.CompassHandout;
 import dev.marshall.hounded.tracking.CompassItem;
 import dev.marshall.hounded.tracking.TargetResolver;
@@ -26,6 +28,7 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
 import java.util.logging.Level;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /** Bootstrap only: wires services together on enable and tears them down on disable. */
@@ -68,7 +71,9 @@ public class HoundedPlugin extends JavaPlugin {
                         new HeadstartListener(headstartHold),
                         new DisplayListener(hudService),
                         new OnboardingListener(new QuickStartGuide(this, configService, firstRoundMarker)),
-                        new TrackingListener(trackingService, compassHandout, compassItem))
+                        new TrackingListener(trackingService, compassHandout, compassItem),
+                        new RulesListener(
+                                new RuleEnforcer(session, configService, getServer(), Player::hasLineOfSight)))
                 .forEach(listener -> getServer().getPluginManager().registerEvents(listener, this));
         HoundedCommand command = new HoundedCommand(
                 new RoleService(session, getServer().getPluginManager()),

@@ -52,9 +52,14 @@ public final class GameSession {
         return roster.roleOf(player).filter(role::equals).isPresent();
     }
 
+    /** The player's role while a round is under way; empty in the lobby or if they have none. */
+    public Optional<Role> roleInRound(UUID player) {
+        return state.isActive() ? roster.roleOf(player) : Optional.empty();
+    }
+
     /** Whether the player has {@code role} in a round that is under way. */
     public boolean isPlaying(UUID player, Role role) {
-        return state.isActive() && hasRole(player, role);
+        return roleInRound(player).filter(role::equals).isPresent();
     }
 
     public List<UUID> playersWith(Role role) {

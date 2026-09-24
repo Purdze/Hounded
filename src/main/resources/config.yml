@@ -20,11 +20,12 @@ compass:
   disable-in-nether-for-hunters: false
 
 rules:
-  # Hunters are frozen while a runner is looking at them. Nobody dies from it.
+  # While hunting, a hunter can't walk while a runner is looking at them (crosshair within about 15
+  # degrees, clear view, up to 64 blocks). They can still look around and attack. Nobody dies from it.
   freeze-when-looked-at: false
-  # Whether runners can damage hunters.
+  # Whether runners can damage hunters, including with arrows and other projectiles.
   runner-can-attack-hunters: true
-  # Whether players on the same side can damage each other.
+  # Whether players on the same side can damage each other, including with projectiles.
   friendly-fire: false
   # Runners who are out (died, or didn't come back in time) watch in spectator mode until the round
   # ends. If false, they keep playing but no longer count for the win.
