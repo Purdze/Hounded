@@ -8,6 +8,7 @@ import dev.marshall.hounded.config.ConfigService;
 import dev.marshall.hounded.config.MessageKey;
 import dev.marshall.hounded.config.PlaceholderNames;
 import dev.marshall.hounded.game.GameSession;
+import dev.marshall.hounded.onboarding.FirstRoundMarker;
 import dev.marshall.hounded.round.HeadstartHold;
 import dev.marshall.hounded.round.RoundService;
 import dev.marshall.hounded.tracking.CompassHandout;
@@ -87,7 +88,8 @@ public final class PluginFixture implements AutoCloseable {
                 session,
                 config,
                 new HeadstartHold(session, config, server),
-                trackingFor(session).handout());
+                trackingFor(session).handout(),
+                new FirstRoundMarker(plugin));
     }
 
     public PlayerMock addAdmin(String name) {

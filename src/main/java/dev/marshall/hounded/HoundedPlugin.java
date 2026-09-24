@@ -8,8 +8,11 @@ import dev.marshall.hounded.display.HudService;
 import dev.marshall.hounded.game.GameSession;
 import dev.marshall.hounded.listener.DisplayListener;
 import dev.marshall.hounded.listener.HeadstartListener;
+import dev.marshall.hounded.listener.OnboardingListener;
 import dev.marshall.hounded.listener.RoundListener;
 import dev.marshall.hounded.listener.TrackingListener;
+import dev.marshall.hounded.onboarding.FirstRoundMarker;
+import dev.marshall.hounded.onboarding.QuickStartGuide;
 import dev.marshall.hounded.round.HeadstartHold;
 import dev.marshall.hounded.round.RoundService;
 import dev.marshall.hounded.tracking.CompassHandout;
@@ -54,15 +57,18 @@ public class HoundedPlugin extends JavaPlugin {
         CompassHandout compassHandout =
                 new CompassHandout(session, trackingService, compassItem, configService, getServer());
         HeadstartHold headstartHold = new HeadstartHold(session, configService, getServer());
-        RoundService roundService = new RoundService(this, session, configService, headstartHold, compassHandout);
+        FirstRoundMarker firstRoundMarker = new FirstRoundMarker(this);
+        RoundService roundService =
+                new RoundService(this, session, configService, headstartHold, compassHandout, firstRoundMarker);
         shutdownSteps.push(roundService::shutdown);
 
-        getServer().getPluginManager().registerEvents(new RoundListener(roundService), this);
-        getServer().getPluginManager().registerEvents(new HeadstartListener(headstartHold), this);
-        getServer().getPluginManager().registerEvents(new DisplayListener(hudService), this);
-        getServer()
-                .getPluginManager()
-                .registerEvents(new TrackingListener(trackingService, compassHandout, compassItem), this);
+        List.of(
+                        new RoundListener(roundService),
+                        new HeadstartListener(headstartHold),
+                        new DisplayListener(hudService),
+                        new OnboardingListener(new QuickStartGuide(this, configService, firstRoundMarker)),
+                        new TrackingListener(trackingService, compassHandout, compassItem))
+                .forEach(listener -> getServer().getPluginManager().registerEvents(listener, this));
         HoundedCommand command = new HoundedCommand(session, roundService, compassHandout, configService, getServer());
         getLifecycleManager()
                 .registerEventHandler(

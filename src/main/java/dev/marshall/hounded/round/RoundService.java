@@ -9,6 +9,7 @@ import dev.marshall.hounded.game.GameOutcome;
 import dev.marshall.hounded.game.GameSession;
 import dev.marshall.hounded.game.GameState;
 import dev.marshall.hounded.game.TransitionResult;
+import dev.marshall.hounded.onboarding.FirstRoundMarker;
 import dev.marshall.hounded.tracking.CompassHandout;
 import java.time.Duration;
 import java.util.Objects;
@@ -30,6 +31,7 @@ public final class RoundService {
     private final ConfigService configService;
     private final HeadstartHold headstartHold;
     private final CompassHandout compassHandout;
+    private final FirstRoundMarker firstRoundMarker;
     private final SpectatorSwitcher spectators;
     private BukkitTask roundTask;
 
@@ -38,12 +40,14 @@ public final class RoundService {
             GameSession session,
             ConfigService configService,
             HeadstartHold headstartHold,
-            CompassHandout compassHandout) {
+            CompassHandout compassHandout,
+            FirstRoundMarker firstRoundMarker) {
         this.plugin = Objects.requireNonNull(plugin, "plugin");
         this.session = Objects.requireNonNull(session, "session");
         this.configService = Objects.requireNonNull(configService, "configService");
         this.headstartHold = Objects.requireNonNull(headstartHold, "headstartHold");
         this.compassHandout = Objects.requireNonNull(compassHandout, "compassHandout");
+        this.firstRoundMarker = Objects.requireNonNull(firstRoundMarker, "firstRoundMarker");
         this.spectators = new SpectatorSwitcher(plugin.getServer());
     }
 
@@ -57,6 +61,7 @@ public final class RoundService {
                 broadcast(MessageKey.START_RELEASED);
             }
             compassHandout.roundStarted();
+            firstRoundMarker.markRoundPlayed();
             roundTask = plugin.getServer()
                     .getScheduler()
                     .runTaskTimer(plugin, this::tickRound, Ticks.PER_SECOND, Ticks.PER_SECOND);

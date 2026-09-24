@@ -26,6 +26,9 @@ All commands except `help` and `compass` need `hounded.admin`. `add` and `remove
 | `/hounded reload` | Reload `config.yml` and `messages.yml` |
 | `/hounded help` | Show help (also plain `/hounded`) |
 
+## First run
+Until the first round is started, admins get a short "how to start" guide in chat when they join. After that it's gone for good: the server remembers it in `plugins/Hounded/data.yml`. To see the guide again, delete that file. To turn it off, set `quick-start-guide: false`.
+
 ## How a round works
 1. Add at least one runner and one hunter.
 2. `/hounded start 30` gives runners 30 seconds, then the hunters are released. During the headstart, hunters are frozen: they can look around but can't move, mine, build, attack, use items or be hurt. They're blind too (both configurable).
@@ -74,7 +77,7 @@ Distances are horizontal blocks, like the X/Z on F3. The display is hidden outsi
 | `rules.runner-rejoin-grace-seconds` | `300` | Seconds a runner who leaves has to come back before they're out. `0` = out at once. |
 | `display.mode` | `bossbar` | `bossbar`, `scoreboard` or `none`. Switches live on `/hounded reload`. |
 | `display.show-distance` | `true` | Show hunters the distance to their target. |
-| `quick-start-guide` | `true` | Show admins a short start guide in chat. |
+| `quick-start-guide` | `true` | Show admins a short start guide in chat until the first round is started. |
 
 Invalid values fall back to the default. The console says which key was wrong.
 
