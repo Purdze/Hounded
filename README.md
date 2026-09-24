@@ -14,12 +14,14 @@ A manhunt game mode for Paper: one or more speedrunners try to beat the game whi
 3. Optional: install [PlaceholderAPI](https://www.spigotmc.org/resources/placeholderapi.6245/) to use Hounded's placeholders in other plugins (scoreboards, tab lists, chat).
 
 ## Commands
-All commands except `help` and `compass` need `hounded.admin`. `add` and `remove` take an online player.
+All commands except `help` and `compass` need `hounded.admin`.
 
 | Command | Description |
 |---|---|
-| `/hounded runner add\|remove\|list\|clear [player]` | Manage runners |
-| `/hounded hunter add\|remove\|list\|clear [player]` | Manage hunters |
+| `/hounded runner add\|remove <player>` | Make an online player a runner, or take the role away |
+| `/hounded runner list\|clear` | List all runners, or remove them all |
+| `/hounded hunter add\|remove <player>` | Same for hunters |
+| `/hounded hunter list\|clear` | Same for hunters |
 | `/hounded start [seconds]` | Start a round with an optional headstart (0 = none) |
 | `/hounded stop` | Stop the current round |
 | `/hounded compass` | Get your tracking compass back (hunters in a round, `hounded.compass`) |
@@ -48,7 +50,7 @@ Every hunter gets a tracking compass when the round starts, and again after dyin
 - **During the headstart:** it doesn't point anywhere, so it can't give away where runners went.
 
 ## Display
-During a round everyone sees a boss bar (or a scoreboard sidebar, see `display.mode`):
+During a round, everyone in the round sees a boss bar (or a scoreboard sidebar, see `display.mode`):
 - **During the headstart:** a countdown until the hunters are released.
 - **While hunting:** the hunt timer.
 - **Hunters also see** how far away their runner is. If the runner is in another dimension, it shows which one and how far away their portal is.
@@ -59,7 +61,7 @@ Distances are horizontal blocks, like the X/Z on F3. The display is hidden outsi
 | Node | Default | Grants |
 |---|---|---|
 | `hounded.admin` | op | All admin commands |
-| `hounded.compass` | everyone | Using the tracking compass |
+| `hounded.compass` | everyone | `/hounded compass` (getting a replacement compass). Hunters get and use their compass without it. |
 
 ## Configuration (`config.yml`)
 | Key | Default | Meaning |
@@ -115,7 +117,7 @@ public void onWin(HoundedRoundWinEvent event) {
 }
 ```
 
-Add `softdepend: [Hounded]` to your `plugin.yml`.
+`Role` is `dev.marshall.hounded.game.Role` (`RUNNER` or `HUNTER`). Add `softdepend: [Hounded]` to your `plugin.yml`.
 
 ## Building
 ```
