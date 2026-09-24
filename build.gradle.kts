@@ -41,6 +41,15 @@ tasks.withType<JavaCompile>().configureEach {
 
 tasks.test {
     useJUnitPlatform()
+    // MockBukkit reports server features it doesn't simulate as skipped tests. Fail instead, so a
+    // test that never ran can't pass silently.
+    afterSuite(
+        KotlinClosure2<TestDescriptor, TestResult, Unit>({ suite, result ->
+            if (suite.parent == null && result.skippedTestCount > 0) {
+                throw GradleException("${result.skippedTestCount} test(s) were skipped; see the test report")
+            }
+        }),
+    )
 }
 
 tasks.processResources {

@@ -67,7 +67,8 @@ public final class CompassItem {
         if (!meta.hasLodestone()) {
             return false;
         }
-        meta.clearLodestone();
+        // Equivalent to clearLodestone(), which MockBukkit doesn't simulate; null is documented as "clear".
+        meta.setLodestone(null);
         compass.setItemMeta(meta);
         return true;
     }

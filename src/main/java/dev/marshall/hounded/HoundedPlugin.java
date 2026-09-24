@@ -4,7 +4,9 @@ import dev.marshall.hounded.command.HoundedCommand;
 import dev.marshall.hounded.config.ConfigLoadException;
 import dev.marshall.hounded.config.ConfigLoader;
 import dev.marshall.hounded.config.ConfigService;
+import dev.marshall.hounded.display.HudService;
 import dev.marshall.hounded.game.GameSession;
+import dev.marshall.hounded.listener.DisplayListener;
 import dev.marshall.hounded.listener.HeadstartListener;
 import dev.marshall.hounded.listener.RoundListener;
 import dev.marshall.hounded.listener.TrackingListener;
@@ -16,6 +18,8 @@ import dev.marshall.hounded.tracking.TargetResolver;
 import dev.marshall.hounded.tracking.TrackingService;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import java.time.Clock;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.List;
 import java.util.logging.Level;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -23,9 +27,9 @@ import org.bukkit.plugin.java.JavaPlugin;
 /** Bootstrap only: wires services together on enable and tears them down on disable. */
 // Not final: MockBukkit subclasses the main class in tests.
 public class HoundedPlugin extends JavaPlugin {
-    // Null until onEnable succeeds; onDisable also runs after a failed enable.
-    private RoundService roundService;
-    private TrackingService trackingService;
+    // Filled as services start, so onDisable only stops what actually started (also after a failed
+    // enable), in reverse order.
+    private final Deque<Runnable> shutdownSteps = new ArrayDeque<>();
 
     @Override
     public void onEnable() {
@@ -40,15 +44,22 @@ public class HoundedPlugin extends JavaPlugin {
 
         GameSession session = new GameSession(Clock.systemUTC());
         CompassItem compassItem = new CompassItem(this);
-        trackingService = new TrackingService(this, session, new TargetResolver(), compassItem, configService);
+        TrackingService trackingService =
+                new TrackingService(this, session, new TargetResolver(), compassItem, configService);
         trackingService.start();
+        shutdownSteps.push(trackingService::stop);
+        HudService hudService = new HudService(this, session, trackingService, configService);
+        hudService.start();
+        shutdownSteps.push(hudService::stop);
         CompassHandout compassHandout =
                 new CompassHandout(session, trackingService, compassItem, configService, getServer());
         HeadstartHold headstartHold = new HeadstartHold(session, configService, getServer());
-        roundService = new RoundService(this, session, configService, headstartHold, compassHandout);
+        RoundService roundService = new RoundService(this, session, configService, headstartHold, compassHandout);
+        shutdownSteps.push(roundService::shutdown);
 
         getServer().getPluginManager().registerEvents(new RoundListener(roundService), this);
         getServer().getPluginManager().registerEvents(new HeadstartListener(headstartHold), this);
+        getServer().getPluginManager().registerEvents(new DisplayListener(hudService), this);
         getServer()
                 .getPluginManager()
                 .registerEvents(new TrackingListener(trackingService, compassHandout, compassItem), this);
@@ -62,13 +73,8 @@ public class HoundedPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        if (roundService != null) {
-            roundService.shutdown();
-            roundService = null;
-        }
-        if (trackingService != null) {
-            trackingService.stop();
-            trackingService = null;
+        while (!shutdownSteps.isEmpty()) {
+            shutdownSteps.pop().run();
         }
     }
 }

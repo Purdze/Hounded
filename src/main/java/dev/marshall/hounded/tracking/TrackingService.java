@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.UUID;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
@@ -35,16 +36,12 @@ public final class TrackingService {
     private final PortalMemory portalMemory = new PortalMemory();
     private final Map<UUID, DimensionalPosition> lastSeenRunners = new HashMap<>();
     private final Map<UUID, UUID> chosenRunnerByHunter = new HashMap<>();
-    private final Map<UUID, Status> statusByHunter = new HashMap<>();
+    private final Map<UUID, TrackingReading.Kind> lastKindByHunter = new HashMap<>();
     private BukkitTask updateTask;
     private long ticksSinceUpdate;
 
-    /** What a hunter's compass is doing; a change is announced once instead of on every update. */
-    private enum Status {
-        TRACKING,
-        NO_DATA,
-        DISABLED
-    }
+    /** A reading plus the position the compass should point at, if any. */
+    private record Resolution(TrackingReading reading, Optional<Position> target) {}
 
     public TrackingService(
             Plugin plugin,
@@ -94,35 +91,32 @@ public final class TrackingService {
     }
 
     /**
-     * Points the hunter's tracking compasses at their runner. Only while hunters are released, so
-     * the compass gives nothing away during the headstart.
+     * What the hunter's compass shows right now. Empty outside the hunt: during the headstart the
+     * compass gives nothing away.
+     */
+    public Optional<TrackingReading> read(Player hunter) {
+        return resolve(hunter).map(Resolution::reading);
+    }
+
+    /**
+     * Points the hunter's tracking compasses at their runner.
      *
      * @param announceStatus repeat a status message even if nothing changed, because the hunter
      *     asked for an update
      */
     public void updateCompass(Player hunter, boolean announceStatus) {
-        if (session.state() != GameState.RUNNING || !session.isPlaying(hunter.getUniqueId(), Role.HUNTER)) {
-            return;
-        }
-        // A running round always has a runner left; the last elimination ends it.
-        Optional<UUID> runner = trackedRunner(hunter);
-        if (runner.isEmpty()) {
-            return;
-        }
-        Optional<Dimension> dimension = Dimensions.of(hunter.getWorld());
-        if (dimension.equals(Optional.of(Dimension.NETHER))
-                && configService.settings().compass().disableInNetherForHunters()) {
-            compassItem.updateAll(hunter.getInventory(), compassItem::clearTarget);
-            report(hunter, Status.DISABLED, announceStatus, runner.get());
-            return;
-        }
-        Optional<Position> target = dimension.flatMap(here -> positionOf(resolver.resolve(
-                new TrackingSnapshot(here, runnerLocation(runner.get()), portalMemory.exitsOf(runner.get())))));
-        Location pointAt = target.map(
-                        position -> new Location(hunter.getWorld(), position.x(), position.y(), position.z()))
-                .orElseGet(() -> hunter.getWorld().getSpawnLocation());
-        compassItem.updateAll(hunter.getInventory(), compass -> compassItem.pointAt(compass, pointAt));
-        report(hunter, target.isPresent() ? Status.TRACKING : Status.NO_DATA, announceStatus, runner.get());
+        resolve(hunter).ifPresent(resolution -> {
+            if (resolution.reading().kind() == TrackingReading.Kind.DISABLED) {
+                compassItem.updateAll(hunter.getInventory(), compassItem::clearTarget);
+            } else {
+                Location pointAt = resolution
+                        .target()
+                        .map(position -> toLocation(hunter, position))
+                        .orElseGet(() -> hunter.getWorld().getSpawnLocation());
+                compassItem.updateAll(hunter.getInventory(), compass -> compassItem.pointAt(compass, pointAt));
+            }
+            report(hunter, resolution.reading(), announceStatus);
+        });
     }
 
     /** A runner changing worlds left through a portal (or was teleported) at {@code from}. */
@@ -138,14 +132,14 @@ public final class TrackingService {
                     .ifPresent(position -> lastSeenRunners.put(player.getUniqueId(), position));
         }
         chosenRunnerByHunter.remove(player.getUniqueId());
-        statusByHunter.remove(player.getUniqueId());
+        lastKindByHunter.remove(player.getUniqueId());
     }
 
     public void forgetRound() {
         portalMemory.clear();
         lastSeenRunners.clear();
         chosenRunnerByHunter.clear();
-        statusByHunter.clear();
+        lastKindByHunter.clear();
     }
 
     /** Sends a compass message with {@code <runner>} filled in. */
@@ -174,20 +168,74 @@ public final class TrackingService {
         return now;
     }
 
-    private static Optional<Position> positionOf(CompassTarget target) {
-        return switch (target) {
-            case CompassTarget.Runner runner -> Optional.of(runner.position());
-            case CompassTarget.LastPortal portal -> Optional.of(portal.position());
-            case CompassTarget.NoData ignored -> Optional.empty();
-        };
-    }
-
-    private void report(Player hunter, Status status, boolean announceStatus, UUID runner) {
-        Status previous = statusByHunter.put(hunter.getUniqueId(), status);
-        if (status == Status.TRACKING || (!announceStatus && previous == status)) {
+    /** Problems are announced once when they start, or again when the hunter asks for an update. */
+    private void report(Player hunter, TrackingReading reading, boolean announceStatus) {
+        TrackingReading.Kind previous = lastKindByHunter.put(hunter.getUniqueId(), reading.kind());
+        if (!announceStatus && previous == reading.kind()) {
             return;
         }
-        MessageKey key = status == Status.NO_DATA ? MessageKey.COMPASS_NO_DATA : MessageKey.COMPASS_DISABLED_IN_NETHER;
-        send(hunter, key, runner);
+        switch (reading.kind()) {
+            case NO_DATA -> send(hunter, MessageKey.COMPASS_NO_DATA, reading.runner());
+            case DISABLED -> send(hunter, MessageKey.COMPASS_DISABLED_IN_NETHER, reading.runner());
+            case RUNNER, PORTAL -> {}
+        }
+    }
+
+    private Optional<Resolution> resolve(Player hunter) {
+        if (session.state() != GameState.RUNNING || !session.isPlaying(hunter.getUniqueId(), Role.HUNTER)) {
+            return Optional.empty();
+        }
+        // A running round always has a runner left; the last elimination ends it.
+        Optional<UUID> tracked = trackedRunner(hunter);
+        if (tracked.isEmpty()) {
+            return Optional.empty();
+        }
+        UUID runner = tracked.get();
+        Optional<DimensionalPosition> runnerAt = runnerLocation(runner);
+        Optional<Dimension> runnerDimension = runnerAt.map(DimensionalPosition::dimension);
+        Optional<DimensionalPosition> hunterAt = Dimensions.positionOf(hunter.getLocation());
+        if (hunterAt.isEmpty()) {
+            return Optional.of(noTarget(runner, TrackingReading.Kind.NO_DATA, runnerDimension));
+        }
+        if (hunterAt.get().dimension() == Dimension.NETHER
+                && configService.settings().compass().disableInNetherForHunters()) {
+            return Optional.of(noTarget(runner, TrackingReading.Kind.DISABLED, runnerDimension));
+        }
+        CompassTarget target = resolver.resolve(
+                new TrackingSnapshot(hunterAt.get().dimension(), runnerAt, portalMemory.exitsOf(runner)));
+        return Optional.of(
+                switch (target) {
+                    case CompassTarget.Runner found ->
+                        towards(runner, TrackingReading.Kind.RUNNER, runnerDimension, hunterAt.get(), found.position());
+                    case CompassTarget.LastPortal portal ->
+                        towards(
+                                runner,
+                                TrackingReading.Kind.PORTAL,
+                                runnerDimension,
+                                hunterAt.get(),
+                                portal.position());
+                    case CompassTarget.NoData ignored ->
+                        noTarget(runner, TrackingReading.Kind.NO_DATA, runnerDimension);
+                });
+    }
+
+    private static Resolution towards(
+            UUID runner,
+            TrackingReading.Kind kind,
+            Optional<Dimension> runnerDimension,
+            DimensionalPosition hunterAt,
+            Position target) {
+        int distance = (int) Math.round(hunterAt.position().horizontalDistanceTo(target));
+        return new Resolution(
+                new TrackingReading(runner, kind, runnerDimension, OptionalInt.of(distance)), Optional.of(target));
+    }
+
+    private static Resolution noTarget(UUID runner, TrackingReading.Kind kind, Optional<Dimension> runnerDimension) {
+        return new Resolution(
+                new TrackingReading(runner, kind, runnerDimension, OptionalInt.empty()), Optional.empty());
+    }
+
+    private static Location toLocation(Player hunter, Position position) {
+        return new Location(hunter.getWorld(), position.x(), position.y(), position.z());
     }
 }

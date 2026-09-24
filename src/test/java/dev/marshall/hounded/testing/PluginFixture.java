@@ -40,6 +40,9 @@ import org.mockbukkit.mockbukkit.world.WorldMock;
  * messages.yml, so tests don't depend on the English wording.
  */
 public final class PluginFixture implements AutoCloseable {
+    /** Rounds in tests last milliseconds, and the hunt timer shows whole seconds. */
+    public static final String INSTANT_HUNT_TIME = "0:00";
+
     private final ServerMock server;
     private final HoundedPlugin plugin;
     private final ConfigService config;
@@ -140,6 +143,18 @@ public final class PluginFixture implements AutoCloseable {
         return server.getScheduler().getPendingTasks().size();
     }
 
+    /** Changes a config value and applies it through the real {@code /hounded reload}. */
+    public void reloadWith(PlayerMock admin, ConfigKey key, Object value) throws IOException {
+        setConfig(key, value);
+        admin.performCommand("hounded reload");
+        messagesOf(admin);
+    }
+
+    /** A message without the chat prefix, as plain text. */
+    public String text(MessageKey key, TagResolver... placeholders) {
+        return plain(config.messages().render(key, placeholders));
+    }
+
     /** The chat line a player would see for {@code key}, as plain text. */
     public String chat(MessageKey key, TagResolver... placeholders) {
         return plain(config.messages().chat(key, placeholders));
@@ -178,7 +193,7 @@ public final class PluginFixture implements AutoCloseable {
         return messages;
     }
 
-    private static String plain(Component component) {
+    public static String plain(Component component) {
         return PlainTextComponentSerializer.plainText().serialize(component);
     }
 

@@ -1,6 +1,7 @@
 package dev.marshall.hounded.round;
 
 import dev.marshall.hounded.PlayerNames;
+import dev.marshall.hounded.Ticks;
 import dev.marshall.hounded.config.ConfigService;
 import dev.marshall.hounded.config.MessageKey;
 import dev.marshall.hounded.config.PlaceholderNames;

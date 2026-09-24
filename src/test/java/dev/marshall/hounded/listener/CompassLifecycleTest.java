@@ -91,12 +91,6 @@ class CompassLifecycleTest {
                         hunter, action, compassOf(hunter), null, BlockFace.SELF, EquipmentSlot.HAND));
     }
 
-    private void reload(ConfigKey key, Object value) throws IOException {
-        fixture.setConfig(key, value);
-        hunter.performCommand("hounded reload");
-        messagesOf(hunter);
-    }
-
     private String aboutRunner(MessageKey key, PlayerMock tracked) {
         return fixture.chat(key, Placeholder.unparsed(PlaceholderNames.RUNNER, tracked.getName()));
     }
@@ -193,7 +187,10 @@ class CompassLifecycleTest {
 
     @Test
     void manualModeWaitsForARightClick() throws IOException {
-        reload(ConfigKey.COMPASS_UPDATE_MODE, CompassUpdateMode.MANUAL.name().toLowerCase());
+        fixture.reloadWith(
+                hunter,
+                ConfigKey.COMPASS_UPDATE_MODE,
+                CompassUpdateMode.MANUAL.name().toLowerCase());
         runner.teleport(new Location(overworld, 150, 64, 30));
 
         fixture.server().getScheduler().performTicks(UPDATE_INTERVAL_TICKS * 3);
@@ -205,7 +202,7 @@ class CompassLifecycleTest {
 
     @Test
     void compassCanBeTurnedOffInTheNether() throws IOException {
-        reload(ConfigKey.COMPASS_DISABLE_IN_NETHER_FOR_HUNTERS, true);
+        fixture.reloadWith(hunter, ConfigKey.COMPASS_DISABLE_IN_NETHER_FOR_HUNTERS, true);
         hunter.teleport(new Location(nether, 0, 64, 0));
 
         fixture.server().getScheduler().performTicks(UPDATE_INTERVAL_TICKS * 2);

@@ -2,7 +2,7 @@
 
 A manhunt game mode for Paper: one or more speedrunners try to beat the game while hunters track them with a compass that works in every dimension.
 
-> **Status: early development (0.1.0-SNAPSHOT).** Full rounds work, including the tracking compass. Timer/distance display, PlaceholderAPI and the events API are still to come.
+> **Status: early development (0.1.0-SNAPSHOT).** Full rounds work, including the tracking compass and the timer/distance display. PlaceholderAPI and the events API are still to come.
 
 ## Requirements
 - Paper **26.2**
@@ -44,6 +44,14 @@ Every hunter gets a tracking compass when the round starts, and again after dyin
 - **Offline runners:** the compass keeps pointing where they were last seen.
 - **During the headstart:** it doesn't point anywhere, so it can't give away where runners went.
 
+## Display
+During a round everyone sees a boss bar (or a scoreboard sidebar, see `display.mode`):
+- **During the headstart:** a countdown until the hunters are released.
+- **While hunting:** the hunt timer.
+- **Hunters also see** how far away their runner is. If the runner is in another dimension, it shows which one and how far away their portal is.
+
+Distances are horizontal blocks, like the X/Z on F3. The display is hidden outside a round. Changing `display.mode` with `/hounded reload` switches it immediately.
+
 ## Permissions
 | Node | Default | Grants |
 |---|---|---|
@@ -64,7 +72,7 @@ Every hunter gets a tracking compass when the round starts, and again after dyin
 | `rules.friendly-fire` | `false` | Players on the same side may damage each other. |
 | `rules.eliminated-runners-spectate` | `true` | Runners who are out watch in spectator mode until the round ends. |
 | `rules.runner-rejoin-grace-seconds` | `300` | Seconds a runner who leaves has to come back before they're out. `0` = out at once. |
-| `display.mode` | `bossbar` | `bossbar`, `scoreboard` or `none`. |
+| `display.mode` | `bossbar` | `bossbar`, `scoreboard` or `none`. Switches live on `/hounded reload`. |
 | `display.show-distance` | `true` | Show hunters the distance to their target. |
 | `quick-start-guide` | `true` | Show admins a short start guide in chat. |
 

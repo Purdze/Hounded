@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import dev.marshall.hounded.config.ConfigKey;
 import dev.marshall.hounded.config.ConfigLoadException;
 import dev.marshall.hounded.config.MessageKey;
 import dev.marshall.hounded.config.PlaceholderNames;
@@ -13,10 +14,12 @@ import dev.marshall.hounded.game.GameSession;
 import dev.marshall.hounded.game.Role;
 import dev.marshall.hounded.testing.MutableClock;
 import dev.marshall.hounded.testing.PluginFixture;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.OptionalInt;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -153,5 +156,65 @@ class TrackingServiceTest {
         assertTrue(Arrays.stream(runner.getInventory().getContents())
                 .filter(Objects::nonNull)
                 .noneMatch(compassItem::isTrackingCompass));
+    }
+
+    @Test
+    void readingInTheSameDimensionGivesTheDistanceToTheRunner() {
+        session.start(0);
+        hunter.teleport(block(overworld, 0, 64, 0));
+        runner.teleport(block(overworld, 30, 90, 40));
+
+        assertEquals(
+                Optional.of(new TrackingReading(
+                        runner.getUniqueId(),
+                        TrackingReading.Kind.RUNNER,
+                        Optional.of(Dimension.OVERWORLD),
+                        OptionalInt.of(50))),
+                tracking.read(hunter));
+    }
+
+    @Test
+    void readingAcrossDimensionsGivesThePortalDistanceAndWhereTheRunnerIs() {
+        session.start(0);
+        hunter.teleport(block(overworld, 0, 64, 0));
+        runnerTakesPortal(block(overworld, 0, 64, 12), block(nether, 1, 64, 2));
+
+        assertEquals(
+                Optional.of(new TrackingReading(
+                        runner.getUniqueId(),
+                        TrackingReading.Kind.PORTAL,
+                        Optional.of(Dimension.NETHER),
+                        OptionalInt.of(12))),
+                tracking.read(hunter));
+    }
+
+    @Test
+    void readingWithoutATrailHasNoDistance() {
+        session.start(0);
+        runnerTakesPortal(block(overworld, 0, 64, 12), block(nether, 1, 64, 2));
+        hunter.teleport(block(end, 0, 64, 0));
+
+        assertEquals(
+                TrackingReading.Kind.NO_DATA,
+                tracking.read(hunter).orElseThrow().kind());
+        assertEquals(OptionalInt.empty(), tracking.read(hunter).orElseThrow().distance());
+    }
+
+    @Test
+    void readingIsDisabledInTheNetherWhenConfigured() throws IOException {
+        fixture.setConfig(ConfigKey.COMPASS_DISABLE_IN_NETHER_FOR_HUNTERS, true);
+        session.start(0);
+        hunter.teleport(block(nether, 0, 64, 0));
+
+        assertEquals(
+                TrackingReading.Kind.DISABLED,
+                tracking.read(hunter).orElseThrow().kind());
+    }
+
+    @Test
+    void nothingIsReadDuringTheHeadstart() {
+        session.start(30);
+
+        assertEquals(Optional.empty(), tracking.read(hunter));
     }
 }

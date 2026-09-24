@@ -18,9 +18,6 @@ import org.mockbukkit.mockbukkit.entity.PlayerMock;
 
 /** Real events on the mock server reach the plugin's round. */
 class RoundListenerTest {
-    // The round lasts milliseconds here, and the timer shows whole seconds.
-    private static final String INSTANT = "0:00";
-
     private PluginFixture fixture;
     private PlayerMock admin;
     private PlayerMock runner;
@@ -46,7 +43,9 @@ class RoundListenerTest {
         assertEquals(List.of(fixture.aboutPlayer(MessageKey.ROUND_RUNNER_ELIMINATED, runner)), messagesOf(admin));
 
         otherRunner.setHealth(0);
-        assertEquals(List.of(fixture.winMessage(MessageKey.WIN_HUNTERS, INSTANT)), messagesOf(admin));
+        assertEquals(
+                List.of(fixture.winMessage(MessageKey.WIN_HUNTERS, PluginFixture.INSTANT_HUNT_TIME)),
+                messagesOf(admin));
     }
 
     @Test
@@ -62,7 +61,9 @@ class RoundListenerTest {
 
         dragon.setHealth(0);
 
-        assertEquals(List.of(fixture.winMessage(MessageKey.WIN_RUNNERS, INSTANT)), messagesOf(admin));
+        assertEquals(
+                List.of(fixture.winMessage(MessageKey.WIN_RUNNERS, PluginFixture.INSTANT_HUNT_TIME)),
+                messagesOf(admin));
     }
 
     @Test

@@ -27,6 +27,7 @@ public final class GameSession {
     private GameState state = GameState.LOBBY;
     private GameOutcome outcome;
     private Instant headstartEndsAt;
+    private Duration headstartLength = Duration.ZERO;
     private Instant runningSince;
     private Instant endedAt;
 
@@ -96,7 +97,8 @@ public final class GameSession {
         if (headstartSeconds == 0) {
             return enterRunning(GameState.LOBBY);
         }
-        headstartEndsAt = clock.instant().plusSeconds(headstartSeconds);
+        headstartLength = Duration.ofSeconds(headstartSeconds);
+        headstartEndsAt = clock.instant().plus(headstartLength);
         return moveTo(GameState.HEADSTART);
     }
 
@@ -170,6 +172,7 @@ public final class GameSession {
         rejoinDeadlines.clear();
         outcome = null;
         headstartEndsAt = null;
+        headstartLength = Duration.ZERO;
         runningSince = null;
         endedAt = null;
         return moveTo(GameState.LOBBY);
@@ -189,6 +192,11 @@ public final class GameSession {
 
     public boolean isEliminated(UUID player) {
         return eliminatedRunners.contains(player);
+    }
+
+    /** How long this round's headstart was; zero if it had none. */
+    public Duration headstartLength() {
+        return headstartLength;
     }
 
     /** Time left in the headstart; zero outside {@link GameState#HEADSTART}. */

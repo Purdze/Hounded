@@ -49,6 +49,7 @@ class GameSessionTest {
             assignOneRunnerAndHunter();
             assertEquals(changed(GameState.LOBBY, GameState.HEADSTART), session.start(30));
             assertEquals(Duration.ofSeconds(30), session.headstartRemaining());
+            assertEquals(Duration.ofSeconds(30), session.headstartLength());
         }
 
         @Test
