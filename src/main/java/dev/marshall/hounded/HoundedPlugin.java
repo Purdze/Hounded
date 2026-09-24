@@ -6,6 +6,8 @@ import dev.marshall.hounded.config.ConfigLoader;
 import dev.marshall.hounded.config.ConfigService;
 import dev.marshall.hounded.display.HudService;
 import dev.marshall.hounded.game.GameSession;
+import dev.marshall.hounded.integration.PlaceholderApiHook;
+import dev.marshall.hounded.integration.PlaceholderResolver;
 import dev.marshall.hounded.listener.DisplayListener;
 import dev.marshall.hounded.listener.HeadstartListener;
 import dev.marshall.hounded.listener.OnboardingListener;
@@ -81,6 +83,11 @@ public class HoundedPlugin extends JavaPlugin {
                 compassHandout,
                 configService,
                 getServer());
+        if (getServer().getPluginManager().isPluginEnabled(PlaceholderApiHook.PLUGIN_NAME)) {
+            shutdownSteps.push(PlaceholderApiHook.register(
+                    getPluginMeta(), new PlaceholderResolver(session, trackingService, configService, getServer())));
+            getLogger().info("PlaceholderAPI found: registered the %hounded_...% placeholders");
+        }
         getLifecycleManager()
                 .registerEventHandler(
                         LifecycleEvents.COMMANDS,

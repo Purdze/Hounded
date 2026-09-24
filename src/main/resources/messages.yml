@@ -68,6 +68,13 @@ display:
   no-trail: "<white><runner></white><gray>: no trail yet</gray>"
   tracking-off: "<gray>Tracking is off in the Nether</gray>"
 
+# The round state, e.g. for the %hounded_state% placeholder.
+state:
+  lobby: "Waiting to start"
+  headstart: "Headstart"
+  running: "Hunt in progress"
+  ended: "Round over"
+
 dimension:
   overworld: "the Overworld"
   nether: "the Nether"

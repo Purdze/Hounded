@@ -5,6 +5,7 @@ import dev.marshall.hounded.config.ConfigService;
 import dev.marshall.hounded.config.MessageKey;
 import dev.marshall.hounded.config.Messages;
 import dev.marshall.hounded.config.PlaceholderNames;
+import dev.marshall.hounded.config.RoleMessages;
 import dev.marshall.hounded.game.Role;
 import dev.marshall.hounded.game.TransitionResult;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
@@ -41,19 +42,9 @@ final class CommandReplies {
 
     /** Both {@code <role>} and {@code <roles>}, rendered from the current messages. */
     TagResolver roleNames(Role role) {
-        RoleNameKeys keys = RoleNameKeys.of(role);
         Messages messages = configService.messages();
         return TagResolver.resolver(
-                Placeholder.component(PlaceholderNames.ROLE, messages.render(keys.singular())),
-                Placeholder.component(PlaceholderNames.ROLES, messages.render(keys.plural())));
-    }
-
-    private record RoleNameKeys(MessageKey singular, MessageKey plural) {
-        static RoleNameKeys of(Role role) {
-            return switch (role) {
-                case RUNNER -> new RoleNameKeys(MessageKey.ROLE_NAME_RUNNER, MessageKey.ROLE_NAME_RUNNERS);
-                case HUNTER -> new RoleNameKeys(MessageKey.ROLE_NAME_HUNTER, MessageKey.ROLE_NAME_HUNTERS);
-            };
-        }
+                Placeholder.component(PlaceholderNames.ROLE, messages.render(RoleMessages.singular(role))),
+                Placeholder.component(PlaceholderNames.ROLES, messages.render(RoleMessages.plural(role))));
     }
 }

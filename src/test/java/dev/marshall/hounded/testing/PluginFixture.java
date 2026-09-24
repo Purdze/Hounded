@@ -8,6 +8,7 @@ import dev.marshall.hounded.config.ConfigService;
 import dev.marshall.hounded.config.MessageKey;
 import dev.marshall.hounded.config.PlaceholderNames;
 import dev.marshall.hounded.game.GameSession;
+import dev.marshall.hounded.integration.PlaceholderResolver;
 import dev.marshall.hounded.onboarding.FirstRoundMarker;
 import dev.marshall.hounded.round.HeadstartHold;
 import dev.marshall.hounded.round.RoundService;
@@ -84,6 +85,11 @@ public final class PluginFixture implements AutoCloseable {
         CompassItem compassItem = new CompassItem(plugin);
         TrackingService service = new TrackingService(plugin, session, new TargetResolver(), compassItem, config);
         return new Tracking(compassItem, service, new CompassHandout(session, service, compassItem, config, server));
+    }
+
+    /** Placeholder values for {@code session}, with its own tracking. */
+    public PlaceholderResolver placeholderResolverFor(GameSession session) {
+        return new PlaceholderResolver(session, trackingFor(session).service(), config, server);
     }
 
     /** A round service on {@code session}, with its own tracking and headstart hold. */

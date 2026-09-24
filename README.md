@@ -2,7 +2,7 @@
 
 A manhunt game mode for Paper: one or more speedrunners try to beat the game while hunters track them with a compass that works in every dimension.
 
-> **Status: early development (0.1.0-SNAPSHOT).** Full rounds work, including the tracking compass, the timer/distance display and an events API for other plugins. PlaceholderAPI support is still to come.
+> **Status: early development (0.1.0-SNAPSHOT).** All v1 features are in: full rounds, the tracking compass, the timer/distance display, PlaceholderAPI placeholders and an events API for other plugins.
 
 ## Requirements
 - Paper **26.2**
@@ -11,7 +11,7 @@ A manhunt game mode for Paper: one or more speedrunners try to beat the game whi
 ## Install
 1. Download `hounded-<version>.jar` (or build it, see below) and put it in your server's `plugins/` folder.
 2. Start the server. Hounded creates `plugins/Hounded/config.yml` and `messages.yml`.
-3. Optional: install PlaceholderAPI for placeholders (planned).
+3. Optional: install [PlaceholderAPI](https://www.spigotmc.org/resources/placeholderapi.6245/) to use Hounded's placeholders in other plugins (scoreboards, tab lists, chat).
 
 ## Commands
 All commands except `help` and `compass` need `hounded.admin`. `add` and `remove` take an online player.
@@ -83,6 +83,19 @@ Invalid values fall back to the default. The console says which key was wrong.
 
 ## Messages (`messages.yml`)
 Every player-facing text is in `messages.yml`, in [MiniMessage](https://docs.advntr.dev/minimessage/format.html) format, so you can recolour or translate it. Keys missing from your file fall back to the bundled English.
+
+## Placeholders
+With PlaceholderAPI installed, these work anywhere PlaceholderAPI does. Values are plain text, and empty when they don't apply to the player.
+
+| Placeholder | Shows |
+|---|---|
+| `%hounded_role%` | The player's role (runner or hunter, from `messages.yml`) |
+| `%hounded_state%` | The round state, e.g. "Hunt in progress" (`state.*` in `messages.yml`) |
+| `%hounded_timer%` | Hunt time, e.g. `12:34` |
+| `%hounded_headstart%` | Headstart time left |
+| `%hounded_distance%` | For hunters: blocks to where their compass points |
+| `%hounded_target%` | For hunters: the runner they're tracking |
+| `%hounded_runners_left%` | Runners still in the round |
 
 ## For developers
 Hounded fires Bukkit events, all on the main thread, from the `dev.marshall.hounded.api` package:

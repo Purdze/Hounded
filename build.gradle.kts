@@ -11,6 +11,7 @@ description = "Hounded – Manhunt: speedrunners vs hunters for Paper"
 val paperApiVersion = "26.2.build.129-stable"
 val junitVersion = "6.1.3"
 val mockBukkitVersion = "4.116.1"
+val placeholderApiVersion = "2.12.3"
 val palantirJavaFormatVersion = "2.99.0"
 
 repositories {
@@ -18,13 +19,18 @@ repositories {
     maven("https://repo.papermc.io/repository/maven-public/") {
         name = "papermc"
     }
+    maven("https://repo.helpch.at/releases/") {
+        name = "helpch"
+    }
 }
 
 dependencies {
     compileOnly("io.papermc.paper:paper-api:$paperApiVersion")
+    compileOnly("me.clip:placeholderapi:$placeholderApiVersion")
 
     testImplementation("io.papermc.paper:paper-api:$paperApiVersion")
     testImplementation("org.mockbukkit.mockbukkit:mockbukkit-v26.2:$mockBukkitVersion")
+    testImplementation("me.clip:placeholderapi:$placeholderApiVersion")
     testImplementation(platform("org.junit:junit-bom:$junitVersion"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
@@ -66,6 +72,10 @@ tasks.runServer {
     runDirectory = layout.projectDirectory.dir("test-server")
     // The owner accepted the Minecraft EULA on 2026-09-23.
     jvmArgs("-Dcom.mojang.eula.agree=true")
+    // Only for trying the placeholders on the dev server; Hounded doesn't ship it.
+    downloadPlugins {
+        hangar("PlaceholderAPI", placeholderApiVersion)
+    }
 }
 
 spotless {
