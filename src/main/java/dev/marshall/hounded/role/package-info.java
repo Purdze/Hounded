@@ -1,2 +1,2 @@
-/** Team handling beyond plain runner/hunter roles. Plain roles live in {@code game}. */
+/** Role changes for commands, announced to other plugins through the events API. */
 package dev.marshall.hounded.role;

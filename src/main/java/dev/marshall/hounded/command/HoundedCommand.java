@@ -4,8 +4,8 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import dev.marshall.hounded.Permissions;
 import dev.marshall.hounded.config.ConfigService;
-import dev.marshall.hounded.game.GameSession;
 import dev.marshall.hounded.game.Role;
+import dev.marshall.hounded.role.RoleService;
 import dev.marshall.hounded.round.RoundService;
 import dev.marshall.hounded.tracking.CompassHandout;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
@@ -22,14 +22,14 @@ public final class HoundedCommand {
     private final CompassCommands compass;
 
     public HoundedCommand(
-            GameSession session,
+            RoleService roleService,
             RoundService roundService,
             CompassHandout compassHandout,
             ConfigService configService,
             Server server) {
         CommandReplies replies = new CommandReplies(configService);
         this.general = new GeneralCommands(configService, replies);
-        this.roles = new RoleCommands(session, replies, server);
+        this.roles = new RoleCommands(roleService, replies, server);
         this.round = new RoundCommands(roundService, configService, replies);
         this.compass = new CompassCommands(compassHandout, replies);
     }

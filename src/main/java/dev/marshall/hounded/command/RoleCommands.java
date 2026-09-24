@@ -4,9 +4,9 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import dev.marshall.hounded.PlayerNames;
 import dev.marshall.hounded.config.MessageKey;
 import dev.marshall.hounded.config.PlaceholderNames;
-import dev.marshall.hounded.game.GameSession;
 import dev.marshall.hounded.game.Role;
 import dev.marshall.hounded.game.TransitionResult;
+import dev.marshall.hounded.role.RoleService;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
 import io.papermc.paper.command.brigadier.argument.ArgumentTypes;
@@ -26,20 +26,20 @@ import org.bukkit.entity.Player;
 final class RoleCommands {
     private static final String PLAYER_ARGUMENT = "player";
 
-    private final GameSession session;
+    private final RoleService roleService;
     private final CommandReplies replies;
     private final Server server;
 
-    RoleCommands(GameSession session, CommandReplies replies, Server server) {
-        this.session = Objects.requireNonNull(session, "session");
+    RoleCommands(RoleService roleService, CommandReplies replies, Server server) {
+        this.roleService = Objects.requireNonNull(roleService, "roleService");
         this.replies = Objects.requireNonNull(replies, "replies");
         this.server = Objects.requireNonNull(server, "server");
     }
 
     LiteralArgumentBuilder<CommandSourceStack> build(Role role) {
         return Commands.literal(role.name().toLowerCase(Locale.ROOT))
-                .then(playerAction("add", role, session::assignRole, MessageKey.ROLE_ASSIGNED))
-                .then(playerAction("remove", role, session::unassignRole, MessageKey.ROLE_REMOVED))
+                .then(playerAction("add", role, roleService::assign, MessageKey.ROLE_ASSIGNED))
+                .then(playerAction("remove", role, roleService::unassign, MessageKey.ROLE_REMOVED))
                 .then(Commands.literal("list").executes(context -> list(context.getSource(), role)))
                 .then(Commands.literal("clear").executes(context -> clear(context.getSource(), role)));
     }
@@ -61,7 +61,7 @@ final class RoleCommands {
     }
 
     private int list(CommandSourceStack source, Role role) {
-        List<UUID> players = session.playersWith(role);
+        List<UUID> players = roleService.playersWith(role);
         if (players.isEmpty()) {
             return replies.send(source, MessageKey.ROLE_LIST_EMPTY, replies.roleNames(role));
         }
@@ -79,6 +79,6 @@ final class RoleCommands {
     }
 
     private int clear(CommandSourceStack source, Role role) {
-        return replies.reply(source, session.clearRole(role), MessageKey.ROLE_CLEARED, replies.roleNames(role));
+        return replies.reply(source, roleService.clear(role), MessageKey.ROLE_CLEARED, replies.roleNames(role));
     }
 }

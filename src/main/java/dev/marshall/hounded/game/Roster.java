@@ -47,14 +47,6 @@ public final class Roster {
         return Optional.empty();
     }
 
-    /** @return how many players lost the role */
-    public int clear(Role role) {
-        Set<UUID> players = playersByRole.get(Objects.requireNonNull(role, "role"));
-        int removed = players.size();
-        players.clear();
-        return removed;
-    }
-
     public Optional<Role> roleOf(UUID player) {
         Objects.requireNonNull(player, "player");
         return playersByRole.entrySet().stream()

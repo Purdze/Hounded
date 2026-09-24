@@ -13,6 +13,7 @@ import dev.marshall.hounded.listener.RoundListener;
 import dev.marshall.hounded.listener.TrackingListener;
 import dev.marshall.hounded.onboarding.FirstRoundMarker;
 import dev.marshall.hounded.onboarding.QuickStartGuide;
+import dev.marshall.hounded.role.RoleService;
 import dev.marshall.hounded.round.HeadstartHold;
 import dev.marshall.hounded.round.RoundService;
 import dev.marshall.hounded.tracking.CompassHandout;
@@ -69,7 +70,12 @@ public class HoundedPlugin extends JavaPlugin {
                         new OnboardingListener(new QuickStartGuide(this, configService, firstRoundMarker)),
                         new TrackingListener(trackingService, compassHandout, compassItem))
                 .forEach(listener -> getServer().getPluginManager().registerEvents(listener, this));
-        HoundedCommand command = new HoundedCommand(session, roundService, compassHandout, configService, getServer());
+        HoundedCommand command = new HoundedCommand(
+                new RoleService(session, getServer().getPluginManager()),
+                roundService,
+                compassHandout,
+                configService,
+                getServer());
         getLifecycleManager()
                 .registerEventHandler(
                         LifecycleEvents.COMMANDS,

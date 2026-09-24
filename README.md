@@ -2,7 +2,7 @@
 
 A manhunt game mode for Paper: one or more speedrunners try to beat the game while hunters track them with a compass that works in every dimension.
 
-> **Status: early development (0.1.0-SNAPSHOT).** Full rounds work, including the tracking compass and the timer/distance display. PlaceholderAPI and the events API are still to come.
+> **Status: early development (0.1.0-SNAPSHOT).** Full rounds work, including the tracking compass, the timer/distance display and an events API for other plugins. PlaceholderAPI support is still to come.
 
 ## Requirements
 - Paper **26.2**
@@ -83,6 +83,26 @@ Invalid values fall back to the default. The console says which key was wrong.
 
 ## Messages (`messages.yml`)
 Every player-facing text is in `messages.yml`, in [MiniMessage](https://docs.advntr.dev/minimessage/format.html) format, so you can recolour or translate it. Keys missing from your file fall back to the bundled English.
+
+## For developers
+Hounded fires Bukkit events, all on the main thread, from the `dev.marshall.hounded.api` package:
+
+| Event | When | Cancellable |
+|---|---|---|
+| `HoundedRoundStartEvent` | Just before a round starts (teams, headstart) | yes |
+| `HoundedRoleChangeEvent` | Just before a player's role changes (`from`/`to`) | yes |
+| `HoundedRoundWinEvent` | A side won (`winner()`), with the hunt time and teams | no |
+| `HoundedRoundStopEvent` | An admin stopped the round | no |
+| `HoundedRoundEndEvent` | Parent of the two above: listen to it to hear about any end | no |
+
+```java
+@EventHandler
+public void onWin(HoundedRoundWinEvent event) {
+    getLogger().info(event.winner() + " won after " + event.huntTime().toMinutes() + " minutes");
+}
+```
+
+Add `softdepend: [Hounded]` to your `plugin.yml`.
 
 ## Building
 ```

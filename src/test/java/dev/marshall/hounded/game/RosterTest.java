@@ -2,7 +2,6 @@ package dev.marshall.hounded.game;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Optional;
@@ -34,15 +33,6 @@ class RosterTest {
         assertEquals(Optional.of(Role.HUNTER), roster.unassign(alice));
         assertEquals(Optional.empty(), roster.roleOf(alice));
         assertEquals(Optional.empty(), roster.unassign(alice));
-    }
-
-    @Test
-    void clearRemovesOnlyThatRole() {
-        roster.assign(alice, Role.RUNNER);
-        roster.assign(bob, Role.HUNTER);
-        assertEquals(1, roster.clear(Role.RUNNER));
-        assertFalse(roster.hasAny(Role.RUNNER));
-        assertTrue(roster.hasAny(Role.HUNTER));
     }
 
     @Test

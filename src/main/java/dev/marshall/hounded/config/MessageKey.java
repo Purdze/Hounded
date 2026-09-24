@@ -51,7 +51,8 @@ public enum MessageKey {
     COMPASS_NOW_TRACKING("compass.now-tracking"),
     COMPASS_NO_DATA("compass.no-data"),
     COMPASS_DISABLED_IN_NETHER("compass.disabled-in-nether"),
-    ERROR_INTERNAL("error.internal");
+    ERROR_INTERNAL("error.internal"),
+    ERROR_CANCELLED_BY_PLUGIN("error.cancelled-by-plugin");
 
     private final String path;
 

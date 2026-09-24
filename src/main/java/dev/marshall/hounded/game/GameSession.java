@@ -76,23 +76,11 @@ public final class GameSession {
         });
     }
 
-    public TransitionResult clearRole(Role role) {
-        return changeRoles(() -> roster.clear(role));
-    }
-
     /** Starts a round. A headstart of 0 skips {@link GameState#HEADSTART}. */
     public TransitionResult start(int headstartSeconds) {
-        if (state != GameState.LOBBY) {
-            return new TransitionResult.Rejected(RejectionReason.NOT_IN_LOBBY);
-        }
-        if (headstartSeconds < 0) {
-            return new TransitionResult.Rejected(RejectionReason.NEGATIVE_HEADSTART);
-        }
-        if (!roster.hasAny(Role.RUNNER)) {
-            return new TransitionResult.Rejected(RejectionReason.NO_RUNNERS);
-        }
-        if (!roster.hasAny(Role.HUNTER)) {
-            return new TransitionResult.Rejected(RejectionReason.NO_HUNTERS);
+        Optional<RejectionReason> blocked = checkStart(headstartSeconds);
+        if (blocked.isPresent()) {
+            return new TransitionResult.Rejected(blocked.get());
         }
         if (headstartSeconds == 0) {
             return enterRunning(GameState.LOBBY);
@@ -100,6 +88,28 @@ public final class GameSession {
         headstartLength = Duration.ofSeconds(headstartSeconds);
         headstartEndsAt = clock.instant().plus(headstartLength);
         return moveTo(GameState.HEADSTART);
+    }
+
+    /** Why {@link #start} would be refused right now, if it would; lets callers ask before starting. */
+    public Optional<RejectionReason> checkStart(int headstartSeconds) {
+        if (state != GameState.LOBBY) {
+            return Optional.of(RejectionReason.NOT_IN_LOBBY);
+        }
+        if (headstartSeconds < 0) {
+            return Optional.of(RejectionReason.NEGATIVE_HEADSTART);
+        }
+        if (!roster.hasAny(Role.RUNNER)) {
+            return Optional.of(RejectionReason.NO_RUNNERS);
+        }
+        if (!roster.hasAny(Role.HUNTER)) {
+            return Optional.of(RejectionReason.NO_HUNTERS);
+        }
+        return Optional.empty();
+    }
+
+    /** Roles are locked during a round because changing them would silently change who can win. */
+    public boolean rolesLocked() {
+        return state.isActive();
     }
 
     /** Called periodically; ends the headstart once its time is up. */
@@ -245,13 +255,9 @@ public final class GameSession {
         });
     }
 
-    /**
-     * Roles are locked during a round because changing them would silently change who can win.
-     *
-     * @param change applies the change, or returns why it can't
-     */
+    /** @param change applies the change, or returns why it can't */
     private TransitionResult changeRoles(Supplier<Optional<RejectionReason>> change) {
-        if (state.isActive()) {
+        if (rolesLocked()) {
             return new TransitionResult.Rejected(RejectionReason.ROLES_LOCKED);
         }
         return change.get()

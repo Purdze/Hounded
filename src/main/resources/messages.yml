@@ -88,3 +88,4 @@ compass:
 
 error:
   internal: "<red>Something went wrong. Check the console for details.</red>"
+  cancelled-by-plugin: "<red>Another plugin cancelled this.</red>"

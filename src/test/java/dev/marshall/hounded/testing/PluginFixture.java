@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
@@ -29,6 +30,10 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.event.Cancellable;
+import org.bukkit.event.Event;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.CompassMeta;
 import org.mockbukkit.mockbukkit.MockBukkit;
@@ -141,6 +146,33 @@ public final class PluginFixture implements AutoCloseable {
         return meta.hasLodestone() ? Optional.of(meta.getLodestone()) : Optional.empty();
     }
 
+    /** Runs {@code handler} for every {@code type} event, as a real listener would. */
+    public <T extends Event> void onEvent(Class<T> type, EventPriority priority, Consumer<T> handler) {
+        server.getPluginManager()
+                .registerEvent(
+                        type,
+                        new Listener() {},
+                        priority,
+                        (listener, event) -> {
+                            if (type.isInstance(event)) {
+                                handler.accept(type.cast(event));
+                            }
+                        },
+                        plugin);
+    }
+
+    /** Every {@code type} event fired from now on, in order, as seen by the last listener. */
+    public <T extends Event> List<T> captureEvents(Class<T> type) {
+        List<T> captured = new ArrayList<>();
+        onEvent(type, EventPriority.MONITOR, captured::add);
+        return captured;
+    }
+
+    /** Makes another plugin cancel every {@code type} event from now on. */
+    public <T extends Event & Cancellable> void cancelEvents(Class<T> type) {
+        onEvent(type, EventPriority.NORMAL, event -> event.setCancelled(true));
+    }
+
     public int scheduledTaskCount() {
         return server.getScheduler().getPendingTasks().size();
     }
@@ -182,6 +214,13 @@ public final class PluginFixture implements AutoCloseable {
 
     public String winMessage(MessageKey key, String huntTime) {
         return chat(key, Placeholder.unparsed(PlaceholderNames.TIME, huntTime));
+    }
+
+    /** Runs a command as {@code sender} and returns only the replies it caused. */
+    public static List<String> run(PlayerMock sender, String command) {
+        messagesOf(sender);
+        sender.performCommand(command);
+        return messagesOf(sender);
     }
 
     /** Every message the player received since the last call, as plain text. */

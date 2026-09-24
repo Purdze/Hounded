@@ -1,6 +1,7 @@
 package dev.marshall.hounded.command;
 
 import static dev.marshall.hounded.testing.PluginFixture.messagesOf;
+import static dev.marshall.hounded.testing.PluginFixture.run;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import dev.marshall.hounded.config.ConfigLoadException;
@@ -33,12 +34,6 @@ class HoundedCommandTest {
     @AfterEach
     void tearDown() {
         fixture.close();
-    }
-
-    private List<String> run(PlayerMock sender, String command) {
-        messagesOf(sender);
-        sender.performCommand(command);
-        return messagesOf(sender);
     }
 
     private String roleMessage(MessageKey key, PlayerMock player, Role role) {

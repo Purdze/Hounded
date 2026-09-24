@@ -26,6 +26,7 @@ final class RejectionMessages {
             case NEGATIVE_HEADSTART -> MessageKey.START_NEGATIVE_HEADSTART;
             case ROLES_LOCKED -> MessageKey.ROLE_LOCKED;
             case NOT_IN_ROLE -> MessageKey.ROLE_NOT_ASSIGNED;
+            case CANCELLED_BY_PLUGIN -> MessageKey.ERROR_CANCELLED_BY_PLUGIN;
             // Only listeners trigger these; reaching one from a command is a bug.
             case NOT_ENDED, NOT_A_RUNNER, ALREADY_ELIMINATED, NOT_AWAITING_RETURN -> MessageKey.ERROR_INTERNAL;
         };

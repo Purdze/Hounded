@@ -12,5 +12,6 @@ public enum RejectionReason {
     NOT_IN_ROLE,
     ALREADY_ELIMINATED,
     NOT_AWAITING_RETURN,
-    ROLES_LOCKED
+    ROLES_LOCKED,
+    CANCELLED_BY_PLUGIN
 }

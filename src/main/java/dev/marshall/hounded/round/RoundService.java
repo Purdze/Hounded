@@ -2,17 +2,25 @@ package dev.marshall.hounded.round;
 
 import dev.marshall.hounded.PlayerNames;
 import dev.marshall.hounded.Ticks;
+import dev.marshall.hounded.api.HoundedRoundEndEvent;
+import dev.marshall.hounded.api.HoundedRoundStartEvent;
+import dev.marshall.hounded.api.HoundedRoundStopEvent;
+import dev.marshall.hounded.api.HoundedRoundWinEvent;
 import dev.marshall.hounded.config.ConfigService;
 import dev.marshall.hounded.config.MessageKey;
 import dev.marshall.hounded.config.PlaceholderNames;
 import dev.marshall.hounded.game.GameOutcome;
 import dev.marshall.hounded.game.GameSession;
 import dev.marshall.hounded.game.GameState;
+import dev.marshall.hounded.game.RejectionReason;
+import dev.marshall.hounded.game.Role;
 import dev.marshall.hounded.game.TransitionResult;
 import dev.marshall.hounded.onboarding.FirstRoundMarker;
 import dev.marshall.hounded.tracking.CompassHandout;
 import java.time.Duration;
+import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
@@ -51,7 +59,18 @@ public final class RoundService {
         this.spectators = new SpectatorSwitcher(plugin.getServer());
     }
 
+    /** Other plugins may veto the start through {@link HoundedRoundStartEvent}. */
     public TransitionResult start(int headstartSeconds) {
+        Optional<RejectionReason> blocked = session.checkStart(headstartSeconds);
+        if (blocked.isPresent()) {
+            return new TransitionResult.Rejected(blocked.get());
+        }
+        HoundedRoundStartEvent event = new HoundedRoundStartEvent(
+                session.playersWith(Role.RUNNER), session.playersWith(Role.HUNTER), headstartSeconds);
+        plugin.getServer().getPluginManager().callEvent(event);
+        if (event.isCancelled()) {
+            return new TransitionResult.Rejected(RejectionReason.CANCELLED_BY_PLUGIN);
+        }
         TransitionResult result = session.start(headstartSeconds);
         if (result instanceof TransitionResult.Changed changed) {
             if (changed.to() == GameState.HEADSTART) {
@@ -136,7 +155,9 @@ public final class RoundService {
             cancelRoundTask();
             headstartHold.releaseAll();
             compassHandout.roundEnded();
-            announce(session.outcome().orElseThrow());
+            GameOutcome outcome = session.outcome().orElseThrow();
+            announce(outcome);
+            plugin.getServer().getPluginManager().callEvent(endEvent(outcome));
             spectators.restoreAll();
             session.reset();
         }
@@ -151,6 +172,17 @@ public final class RoundService {
         };
         broadcast(
                 key, Placeholder.unparsed(PlaceholderNames.TIME, HuntTimeFormatter.format(session.elapsedHuntTime())));
+    }
+
+    private HoundedRoundEndEvent endEvent(GameOutcome outcome) {
+        List<UUID> runners = session.playersWith(Role.RUNNER);
+        List<UUID> hunters = session.playersWith(Role.HUNTER);
+        Duration huntTime = session.elapsedHuntTime();
+        return switch (outcome) {
+            case RUNNERS_WIN -> new HoundedRoundWinEvent(Role.RUNNER, runners, hunters, huntTime);
+            case HUNTERS_WIN -> new HoundedRoundWinEvent(Role.HUNTER, runners, hunters, huntTime);
+            case STOPPED -> new HoundedRoundStopEvent(runners, hunters, huntTime);
+        };
     }
 
     private void cancelRoundTask() {

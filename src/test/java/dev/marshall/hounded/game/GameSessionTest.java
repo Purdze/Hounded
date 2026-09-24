@@ -86,6 +86,39 @@ class GameSessionTest {
     }
 
     @Nested
+    class Checks {
+        @Test
+        void checkStartGivesTheReasonStartWouldBeRefused() {
+            assertEquals(Optional.of(RejectionReason.NO_RUNNERS), session.checkStart(0));
+            session.assignRole(runner, Role.RUNNER);
+            assertEquals(Optional.of(RejectionReason.NO_HUNTERS), session.checkStart(0));
+            session.assignRole(hunter, Role.HUNTER);
+            assertEquals(Optional.of(RejectionReason.NEGATIVE_HEADSTART), session.checkStart(-1));
+            assertEquals(Optional.empty(), session.checkStart(0));
+
+            session.start(0);
+            assertEquals(Optional.of(RejectionReason.NOT_IN_LOBBY), session.checkStart(0));
+        }
+
+        @Test
+        void checkingDoesNotStartAnything() {
+            assignOneRunnerAndHunter();
+            session.checkStart(0);
+            assertEquals(GameState.LOBBY, session.state());
+        }
+
+        @Test
+        void rolesAreLockedOnlyWhileARoundIsActive() {
+            assignOneRunnerAndHunter();
+            assertFalse(session.rolesLocked());
+            session.start(10);
+            assertTrue(session.rolesLocked());
+            session.stop();
+            assertFalse(session.rolesLocked());
+        }
+    }
+
+    @Nested
     class Headstart {
         @Test
         void tickBeforeHeadstartEndsKeepsHeadstart() {
@@ -386,7 +419,6 @@ class GameSessionTest {
             assertEquals(rejected(RejectionReason.ROLES_LOCKED), session.assignRole(newcomer, Role.HUNTER));
             assertEquals(rejected(RejectionReason.ROLES_LOCKED), session.unassignRole(runner, Role.RUNNER));
             assertEquals(rejected(RejectionReason.ROLES_LOCKED), session.unassignRole(hunter, Role.RUNNER));
-            assertEquals(rejected(RejectionReason.ROLES_LOCKED), session.clearRole(Role.HUNTER));
             assertEquals(Optional.of(Role.RUNNER), session.roleOf(runner));
         }
 
