@@ -72,7 +72,6 @@ public final class TrackingService {
         forgetRound();
     }
 
-    /** The runner this hunter's compass follows. */
     public Optional<UUID> trackedRunner(Player hunter) {
         return RunnerCycle.current(
                 session.remainingRunners(), Optional.ofNullable(chosenRunnerByHunter.get(hunter.getUniqueId())));

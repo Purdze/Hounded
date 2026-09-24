@@ -12,7 +12,6 @@ final class Freeze {
 
     private Freeze() {}
 
-    /** Undoes a change of position if the player may not move. */
     static void holdPositionIfFrozen(PlayerMoveEvent event, Predicate<Player> frozen) {
         if (event.hasChangedPosition() && frozen.test(event.getPlayer())) {
             holdPosition(event);

@@ -5,11 +5,7 @@ public final class GazeGeometry {
 
     private GazeGeometry() {}
 
-    /**
-     * @param eye where the looker's eyes are
-     * @param direction where they are looking; need not be normalised
-     * @param target the point being looked at
-     */
+    /** @param direction where they are looking; need not be normalised */
     public static boolean isLookingAt(
             Vector3 eye, Vector3 direction, Vector3 target, double maxAngleDegrees, double maxDistance) {
         Vector3 toTarget = target.minus(eye);

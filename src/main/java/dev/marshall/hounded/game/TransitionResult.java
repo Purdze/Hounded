@@ -5,7 +5,6 @@ import java.util.Objects;
 /** Result of asking {@link GameSession} to change something. Returned instead of throwing. */
 public sealed interface TransitionResult {
 
-    /** The state changed. */
     record Changed(GameState from, GameState to) implements TransitionResult {
         public Changed {
             Objects.requireNonNull(from, "from");
@@ -20,7 +19,6 @@ public sealed interface TransitionResult {
         }
     }
 
-    /** The request was refused. */
     record Rejected(RejectionReason reason) implements TransitionResult {
         public Rejected {
             Objects.requireNonNull(reason, "reason");
