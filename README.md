@@ -135,4 +135,4 @@ Builds the plugin and starts a Paper 26.2 server in `test-server/` with it loade
 `./gradlew test` runs plain unit tests for the game logic, plus [MockBukkit](https://github.com/MockBukkit/MockBukkit) tests that load the plugin on a simulated server and drive commands, deaths and the headstart timer.
 
 ## License
-TBD.
+Hounded is licensed under the [GNU General Public License v3.0](LICENSE). You may use, change and share it. If you publish a modified version, you must publish its source under the same license.

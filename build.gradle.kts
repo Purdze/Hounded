@@ -58,6 +58,11 @@ tasks.test {
     )
 }
 
+// GPL-3.0 expects the license to travel with the plugin jar.
+tasks.jar {
+    from("LICENSE")
+}
+
 tasks.processResources {
     val props = mapOf("version" to project.version, "description" to project.description)
     inputs.properties(props)

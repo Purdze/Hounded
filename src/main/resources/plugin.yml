@@ -1,6 +1,7 @@
 name: Hounded
 version: '${version}'
 main: dev.marshall.hounded.HoundedPlugin
+authors: [Purdze]
 description: '${description}'
 # Minimum supported version, not a target.
 api-version: '26.2'
