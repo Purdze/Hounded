@@ -24,8 +24,16 @@ repositories {
     maven("https://repo.papermc.io/repository/maven-public/") {
         name = "papermc"
     }
-    maven("https://repo.helpch.at/releases/") {
-        name = "helpch"
+    // PlaceholderAPI comes only from its own repository, and that repository serves nothing else.
+    exclusiveContent {
+        forRepository {
+            maven("https://repo.helpch.at/releases/") {
+                name = "helpch"
+            }
+        }
+        filter {
+            includeGroup("me.clip")
+        }
     }
 }
 
