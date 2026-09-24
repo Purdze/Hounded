@@ -1,0 +1,32 @@
+name: Translation
+description: Share a translated messages.yml so other servers can use it.
+labels: [translation]
+body:
+  - type: markdown
+    attributes:
+      value: See [Translating Messages](https://github.com/Purdze/Hounded/wiki/Translating-Messages) for how the file works.
+  - type: input
+    attributes:
+      label: Language
+      placeholder: "German (de_DE)"
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Hounded version
+      description: The version whose messages.yml you translated.
+      placeholder: "1.0.0"
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: messages.yml
+      render: yaml
+    validations:
+      required: true
+  - type: checkboxes
+    attributes:
+      label: License
+      options:
+        - label: I agree that this translation may be shipped with Hounded under the GPL-3.0 license.
+          required: true

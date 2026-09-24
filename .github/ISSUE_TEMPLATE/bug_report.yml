@@ -1,0 +1,54 @@
+name: Bug report
+description: Something in Hounded doesn't work as it should.
+labels: [bug]
+body:
+  - type: checkboxes
+    attributes:
+      label: Before you report
+      options:
+        - label: I checked the [FAQ](https://github.com/Purdze/Hounded/wiki/FAQ) and searched existing issues.
+          required: true
+        - label: I'm on the latest Hounded release.
+          required: true
+  - type: textarea
+    attributes:
+      label: What happened?
+      description: What went wrong, and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. /hounded runner add Steve
+        2. /hounded start 30
+        3. ...
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Hounded version
+      placeholder: "1.0.0"
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Server version
+      description: The output of `/version`.
+      placeholder: "Paper 26.2 build 129"
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Other plugins
+      description: The output of `/plugins`, or at least any that change combat, teleports or compasses.
+  - type: textarea
+    attributes:
+      label: config.yml
+      description: Only if you changed it.
+      render: yaml
+  - type: textarea
+    attributes:
+      label: Console errors
+      description: Any errors or warnings from Hounded in the console.
+      render: shell

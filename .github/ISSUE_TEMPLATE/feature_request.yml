@@ -1,0 +1,18 @@
+name: Feature request
+description: Suggest an idea for Hounded.
+labels: [enhancement]
+body:
+  - type: textarea
+    attributes:
+      label: What would you like?
+      description: Describe the problem it solves, or the kind of game it enables.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: How should it work?
+      description: Commands, config options or behaviour you have in mind.
+  - type: textarea
+    attributes:
+      label: Anything else?
+      description: Workarounds you use today, or other plugins that do something similar.
