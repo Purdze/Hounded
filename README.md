@@ -5,8 +5,8 @@ A manhunt game mode for Paper: one or more speedrunners try to beat the game whi
 > **Version 1.0.0.** Full rounds, a tracking compass that works in every dimension, a timer and distance display, PlaceholderAPI placeholders and an events API for other plugins.
 
 ## Requirements
-- Paper **26.2**
-- Java **25**
+- Paper **1.21.4 or newer**, up to **26.2**
+- Java **21** or newer (Paper 26.x itself needs Java 25)
 
 ## Install
 1. Download `hounded-<version>.jar` (or build it, see below) and put it in your server's `plugins/` folder.
@@ -123,13 +123,13 @@ public void onWin(HoundedRoundWinEvent event) {
 ```
 ./gradlew build
 ```
-Needs a JDK 25 that Gradle can find (Gradle itself can run on 21+). The jar goes to `build/libs/`. Formatting is enforced: run `./gradlew spotlessApply` if the build complains.
+Needs a JDK 25 that Gradle can find (Gradle itself can run on 21+). The plugin is compiled against the Paper 1.21.4 API for Java 21, and tested against Paper 26.2. `runServerOldest` also needs a JDK 21. The jar goes to `build/libs/`. Formatting is enforced: run `./gradlew spotlessApply` if the build complains.
 
 ## Local test server
 ```
 ./gradlew runServer
 ```
-Builds the plugin and starts a Paper 26.2 server in `test-server/` with it loaded (via [run-paper](https://github.com/jpenilla/run-task)). Type server commands in the same terminal and `stop` to shut down. Starting it accepts the Minecraft EULA (see `build.gradle.kts`). `test-server/` isn't committed.
+Builds the plugin and starts a Paper 26.2 server in `test-server/` with it loaded. `./gradlew runServerOldest` does the same with Paper 1.21.4 on Java 21 in `test-server-1.21.4/`, to check the oldest supported version (via [run-paper](https://github.com/jpenilla/run-task)). Type server commands in the same terminal and `stop` to shut down. Starting it accepts the Minecraft EULA (see `build.gradle.kts`). `test-server/` isn't committed.
 
 ## Tests
 `./gradlew test` runs plain unit tests for the game logic, plus [MockBukkit](https://github.com/MockBukkit/MockBukkit) tests that load the plugin on a simulated server and drive commands, deaths and the headstart timer.

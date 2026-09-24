@@ -4,7 +4,7 @@ main: dev.marshall.hounded.HoundedPlugin
 authors: [Purdze]
 description: '${description}'
 # Minimum supported version, not a target.
-api-version: '26.2'
+api-version: '${apiVersion}'
 softdepend: [PlaceholderAPI]
 # Commands are registered through Paper's Brigadier lifecycle API, so there is no commands: block.
 permissions:

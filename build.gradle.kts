@@ -8,7 +8,12 @@ group = "dev.marshall"
 version = "1.0.0"
 description = "Hounded - Manhunt: speedrunners vs hunters for Paper"
 
-val paperApiVersion = "26.2.build.129-stable"
+// Compiled against the oldest supported Paper API, tested against the newest (see docs/DECISIONS.md).
+val oldestMinecraftVersion = "1.21.4"
+val oldestJavaVersion = 21
+val newestMinecraftVersion = "26.2"
+val oldestPaperApiVersion = "$oldestMinecraftVersion-R0.1-SNAPSHOT"
+val paperApiVersion = "$newestMinecraftVersion.build.129-stable"
 val junitVersion = "6.1.3"
 val mockBukkitVersion = "4.116.1"
 val placeholderApiVersion = "2.12.3"
@@ -25,7 +30,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:$paperApiVersion")
+    compileOnly("io.papermc.paper:paper-api:$oldestPaperApiVersion")
     compileOnly("me.clip:placeholderapi:$placeholderApiVersion")
 
     testImplementation("io.papermc.paper:paper-api:$paperApiVersion")
@@ -43,6 +48,11 @@ java {
 tasks.withType<JavaCompile>().configureEach {
     options.encoding = "UTF-8"
     options.compilerArgs.addAll(listOf("-Xlint:all", "-Werror"))
+}
+
+// Paper 1.21.x runs on Java 21; the Java 25 toolchain is only needed to run the tests on 26.2.
+tasks.compileJava {
+    options.release.set(oldestJavaVersion)
 }
 
 tasks.test {
@@ -64,7 +74,11 @@ tasks.jar {
 }
 
 tasks.processResources {
-    val props = mapOf("version" to project.version, "description" to project.description)
+    val props = mapOf(
+        "version" to project.version,
+        "description" to project.description,
+        "apiVersion" to oldestMinecraftVersion,
+    )
     inputs.properties(props)
     filteringCharset = "UTF-8"
     filesMatching("plugin.yml") {
@@ -72,15 +86,26 @@ tasks.processResources {
     }
 }
 
-tasks.runServer {
-    minecraftVersion("26.2")
-    runDirectory = layout.projectDirectory.dir("test-server")
+tasks.withType<xyz.jpenilla.runpaper.task.RunServer>().configureEach {
     // The owner accepted the Minecraft EULA on 2026-09-23.
     jvmArgs("-Dcom.mojang.eula.agree=true")
     // Only for trying the placeholders on the dev server; Hounded doesn't ship it.
     downloadPlugins {
         hangar("PlaceholderAPI", placeholderApiVersion)
     }
+}
+
+tasks.runServer {
+    minecraftVersion(newestMinecraftVersion)
+    runDirectory = layout.projectDirectory.dir("test-server")
+}
+
+// The oldest supported version, on the Java it requires, in its own folder.
+tasks.register<xyz.jpenilla.runpaper.task.RunServer>("runServerOldest") {
+    minecraftVersion(oldestMinecraftVersion)
+    runDirectory = layout.projectDirectory.dir("test-server-$oldestMinecraftVersion")
+    javaLauncher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(oldestJavaVersion) }
+    pluginJars(tasks.jar.flatMap { it.archiveFile })
 }
 
 spotless {

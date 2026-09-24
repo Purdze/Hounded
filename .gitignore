@@ -2,6 +2,7 @@
 build/
 out/
 test-server/
+test-server-1.21.4/
 .idea/
 *.iml
 .vscode/
