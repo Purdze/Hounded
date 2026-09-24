@@ -15,6 +15,8 @@ Needs Paper 1.21.4 to 26.2 and Java 21 or newer. Put the jar from the [releases]
 ```
 That starts a round with a 30 second headstart. See the [Server Setup Guide](https://github.com/Purdze/Hounded/wiki/Server-Setup-Guide) for more.
 
+Hounded uses [bStats](https://bstats.org/docs/server-owners) for anonymous usage stats, such as server counts and versions. Turn it off for all plugins in `plugins/bStats/config.yml`.
+
 ## Development
 
 ### Building

@@ -30,12 +30,16 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
 import java.util.logging.Level;
+import org.bstats.bukkit.Metrics;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /** Bootstrap only: wires services together on enable and tears them down on disable. */
 // Not final: MockBukkit subclasses the main class in tests.
 public class HoundedPlugin extends JavaPlugin {
+    // https://bstats.org/plugin/bukkit/Hounded/34273
+    private static final int BSTATS_PLUGIN_ID = 34273;
+
     // Filled as services start, so onDisable only stops what actually started (also after a failed
     // enable), in reverse order.
     private final Deque<Runnable> shutdownSteps = new ArrayDeque<>();
@@ -50,6 +54,8 @@ public class HoundedPlugin extends JavaPlugin {
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
+        Metrics metrics = new Metrics(this, BSTATS_PLUGIN_ID);
+        shutdownSteps.push(metrics::shutdown);
 
         GameSession session = new GameSession(Clock.systemUTC());
         CompassItem compassItem = new CompassItem(this);

@@ -2,6 +2,7 @@ plugins {
     java
     id("com.diffplug.spotless") version "8.10.2"
     id("xyz.jpenilla.run-paper") version "3.1.0"
+    id("com.gradleup.shadow") version "9.6.1"
 }
 
 group = "dev.marshall"
@@ -17,6 +18,7 @@ val paperApiVersion = "$newestMinecraftVersion.build.129-stable"
 val junitVersion = "6.1.3"
 val mockBukkitVersion = "4.116.1"
 val placeholderApiVersion = "2.12.3"
+val bStatsVersion = "3.2.1"
 val palantirJavaFormatVersion = "2.99.0"
 
 repositories {
@@ -40,6 +42,7 @@ repositories {
 dependencies {
     compileOnly("io.papermc.paper:paper-api:$oldestPaperApiVersion")
     compileOnly("me.clip:placeholderapi:$placeholderApiVersion")
+    implementation("org.bstats:bstats-bukkit:$bStatsVersion")
 
     testImplementation("io.papermc.paper:paper-api:$paperApiVersion")
     testImplementation("org.mockbukkit.mockbukkit:mockbukkit-v26.2:$mockBukkitVersion")
@@ -65,6 +68,8 @@ tasks.compileJava {
 
 tasks.test {
     useJUnitPlatform()
+    // Tests run on the unrelocated bStats classes.
+    systemProperty("bstats.relocatecheck", "false")
     // MockBukkit reports server features it doesn't simulate as skipped tests. Fail instead, so a
     // test that never ran can't pass silently.
     afterSuite(
@@ -76,9 +81,17 @@ tasks.test {
     )
 }
 
-// GPL-3.0 expects the license to travel with the plugin jar.
-tasks.jar {
+// The plugin jar. bStats must be relocated under our package, or it refuses to start.
+tasks.shadowJar {
+    archiveClassifier.set("")
+    relocate("org.bstats", "dev.marshall.hounded.libs.bstats")
+    // GPL-3.0 expects the license to travel with the plugin jar.
     from("LICENSE")
+}
+
+// Keeps build/libs/ to the one jar the release workflow uploads.
+tasks.jar {
+    enabled = false
 }
 
 tasks.processResources {
@@ -108,12 +121,11 @@ tasks.runServer {
     runDirectory = layout.projectDirectory.dir("test-server")
 }
 
-// The oldest supported version, on the Java it requires, in its own folder.
 tasks.register<xyz.jpenilla.runpaper.task.RunServer>("runServerOldest") {
     minecraftVersion(oldestMinecraftVersion)
     runDirectory = layout.projectDirectory.dir("test-server-$oldestMinecraftVersion")
     javaLauncher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(oldestJavaVersion) }
-    pluginJars(tasks.jar.flatMap { it.archiveFile })
+    pluginJars(tasks.shadowJar.flatMap { it.archiveFile })
 }
 
 spotless {
