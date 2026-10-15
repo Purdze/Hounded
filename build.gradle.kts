@@ -1,6 +1,6 @@
 plugins {
     java
-    id("com.diffplug.spotless") version "8.10.2"
+    id("com.diffplug.spotless") version "8.10.4"
     id("xyz.jpenilla.run-paper") version "3.1.0"
     id("com.gradleup.shadow") version "9.6.1"
 }
@@ -16,7 +16,7 @@ val newestMinecraftVersion = "26.2"
 val oldestPaperApiVersion = "$oldestMinecraftVersion-R0.1-SNAPSHOT"
 val paperApiVersion = "$newestMinecraftVersion.build.129-stable"
 val junitVersion = "6.1.3"
-val mockBukkitVersion = "4.116.1"
+val mockBukkitVersion = "4.117.0"
 val placeholderApiVersion = "2.12.3"
 val bStatsVersion = "3.2.1"
 val palantirJavaFormatVersion = "2.99.0"
